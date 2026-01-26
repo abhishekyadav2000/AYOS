@@ -1,0 +1,22 @@
+name: Weekly Dependency Report
+
+on:
+  schedule:
+    - cron: '0 11 * * 1' # Every Monday 11:00 UTC (~5 AM CT)
+  workflow_dispatch:
+
+jobs:
+  npm-outdated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate outdated report
+        run: node scripts/ci/outdated-report.js
