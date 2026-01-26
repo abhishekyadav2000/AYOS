@@ -3,6 +3,7 @@
 import { Container } from "@/components/ui/Container";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -15,7 +16,12 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  if (pathname === "/os") {
+    return null;
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-indigo-500/20 bg-black/80 backdrop-blur-md">
