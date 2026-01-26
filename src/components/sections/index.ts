@@ -1,0 +1,10 @@
+export { About } from "./About";
+export { BlogPreview } from "./BlogPreview";
+export { Contact } from "./Contact";
+export { Footer } from "./Footer";
+export { Hero } from "./Hero";
+export { Principles } from "./Principles";
+export { Projects } from "./Projects";
+export { ProofStrip } from "./ProofStrip";
+export { MicroBusiness } from "./Services";
+export { Skills } from "./Skills";
