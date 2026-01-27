@@ -38,7 +38,7 @@ export function Windows11Taskbar({
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [time, setTime] = React.useState<{ time: string; date: string }>({ time: "", date: "" });
   const startMenuRef = React.useRef<HTMLDivElement>(null);
-  const fs = useFileSystemStore((s) => s.fs);
+  const nodes = useFileSystemStore((s) => s.nodes);
 
   React.useEffect(() => {
     const updateTime = () => {
@@ -225,7 +225,7 @@ export function Windows11Taskbar({
         onSelectFile={(file) => {
           setIsSearchOpen(false);
           // Open My Computer and navigate to the parent directory of the selected file
-          if (fs.nodes) {
+          if (nodes) {
             const parentId = file.parentId || "root";
             // Store the target path for My Computer to navigate to
             const existing = windows.find((w) => w.appId === "my-computer");
