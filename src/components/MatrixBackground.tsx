@@ -5,21 +5,38 @@ import { useEffect, useRef, useState } from "react";
 export function MatrixBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const mousePosRef = useRef({ x: 0, y: 0 });
+  const animationFrameRef = useRef<number>();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
       setMousePos({ x: e.clientX, y: e.clientY });
     };
     
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    // Throttle mouse updates
+    let timeout: NodeJS.Timeout;
+    const throttledMouseMove = (e: MouseEvent) => {
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          handleMouseMove(e);
+          timeout = null as any;
+        }, 16); // ~60fps
+      }
+    };
+    
+    window.addEventListener("mousemove", throttledMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", throttledMouseMove);
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
     // Set canvas size
@@ -54,18 +71,30 @@ export function MatrixBackground() {
     ];
 
     let colorIndex = 0;
+    let lastFrameTime = 0;
+    const targetFPS = 30;
+    const frameDelay = 1000 / targetFPS;
 
-    function draw() {
+    function draw(currentTime: number) {
       if (!ctx || !canvas) return;
+
+      // Frame rate limiting
+      const elapsed = currentTime - lastFrameTime;
+      if (elapsed < frameDelay) {
+        animationFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrameTime = currentTime - (elapsed % frameDelay);
 
       // Add trailing effect with darker fade
       ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw white spotlight effect around cursor
+      // Draw white spotlight effect around cursor - only redraw if needed
+      const currentMouse = mousePosRef.current;
       const gradient = ctx.createRadialGradient(
-        mousePos.x, mousePos.y, 0,
-        mousePos.x, mousePos.y, 300
+        currentMouse.x, currentMouse.y, 0,
+        currentMouse.x, currentMouse.y, 300
       );
       gradient.addColorStop(0, "rgba(255, 255, 255, 0.15)");
       gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.05)");
@@ -73,10 +102,10 @@ export function MatrixBackground() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Set font
+      // Set font once
       ctx.font = `bold ${fontSize}px monospace`;
 
-      // Draw characters
+      // Draw characters - optimize by reducing calculations
       for (let i = 0; i < drops.length; i++) {
         // Random character
         const text = chars[Math.floor(Math.random() * chars.length)];
@@ -84,14 +113,20 @@ export function MatrixBackground() {
         const x = i * fontSize;
         const y = drops[i] * fontSize;
         
-        // Calculate distance from mouse for spotlight enhancement
-        const dx = x - mousePos.x;
-        const dy = y - mousePos.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const spotlightBoost = Math.max(0, 1 - distance / 400);
+        // Skip offscreen characters
+        if (y < -fontSize || y > canvas.height + fontSize) {
+          drops[i]++;
+          continue;
+        }
+        
+        // Simplified distance calculation - only for spotlight
+        const dx = x - currentMouse.x;
+        const dy = y - currentMouse.y;
+        const distanceSq = dx * dx + dy * dy;
+        const spotlightBoost = distanceSq < 160000 ? Math.max(0, 1 - Math.sqrt(distanceSq) / 400) : 0;
         
         // Rainbow color cycling - each column cycles through colors
-        const columnColorIndex = (i + colorIndex) % colors.length;
+        const columnColorIndex = Math.floor((i + colorIndex) % colors.length);
         const baseColor = colors[columnColorIndex];
         
         // Enhanced alpha with spotlight effect
@@ -101,13 +136,15 @@ export function MatrixBackground() {
         ctx.fillStyle = baseColor;
         ctx.globalAlpha = alpha;
 
-        // Draw the character with glow effect - enhanced for rainbow
+        // Draw the character with glow effect - only when needed
         if (spotlightBoost > 0.3) {
           ctx.shadowColor = baseColor;
           ctx.shadowBlur = 15 + spotlightBoost * 25;
-        } else {
-          ctx.shadowBlur = 3; // Subtle glow even without spotlight
+        } else if (spotlightBoost > 0) {
+          ctx.shadowBlur = 3;
           ctx.shadowColor = baseColor;
+        } else {
+          ctx.shadowBlur = 0;
         }
         
         ctx.fillText(text, x, y);
@@ -126,16 +163,20 @@ export function MatrixBackground() {
 
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
+
+      animationFrameRef.current = requestAnimationFrame(draw);
     }
 
-    // Animation loop
-    const interval = setInterval(draw, 33); // ~30 FPS
+    // Start animation loop with requestAnimationFrame
+    animationFrameRef.current = requestAnimationFrame(draw);
 
     return () => {
-      clearInterval(interval);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       window.removeEventListener("resize", setCanvasSize);
     };
-  }, [mousePos]);
+  }, []); // Remove mousePos dependency - use ref instead
 
   return (
     <canvas
