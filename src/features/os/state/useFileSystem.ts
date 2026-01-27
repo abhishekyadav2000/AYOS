@@ -68,13 +68,21 @@ const seedNodes = (): FSNode[] => {
     // Documents content
     { id: "resume-pdf", name: "Resume.pdf", type: "file", fileType: "pdf", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     { id: "resume-docx", name: "Resume.docx", type: "file", fileType: "docx", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
-    { id: "portfolio", name: "Portfolio.txt", type: "file", fileType: "txt", content: "Abhishek Yadav | Portfolio notes", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
+    { id: "portfolio", name: "Portfolio.txt", type: "file", fileType: "txt", content: "Abhishek Yadav | Full Stack Developer\nSkills: React, Next.js, TypeScript, Node.js, Python\nPortfolio: Building innovative web applications", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     // Downloads content
     { id: "setup-exe", name: "Setup.exe", type: "file", fileType: "exe", parentId: "downloads", createdAt: timestamp, updatedAt: timestamp },
-    // Social links
-    { id: "socials", name: "Socials", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
-    { id: "linkedin", name: "LinkedIn.link", type: "file", fileType: "link", content: "https://www.linkedin.com/in/itsmebro", parentId: "socials", createdAt: timestamp, updatedAt: timestamp },
-    { id: "github", name: "GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "socials", createdAt: timestamp, updatedAt: timestamp },
+    // Desktop folders
+    { id: "desktop-projects", name: "Projects", type: "folder", parentId: "desktop", createdAt: timestamp, updatedAt: timestamp },
+    { id: "desktop-socials", name: "Social Media", type: "folder", parentId: "desktop", createdAt: timestamp, updatedAt: timestamp },
+    // Projects folder content
+    { id: "proj-ayos", name: "AYOS (This Site).link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000/AYOS", parentId: "desktop-projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-github", name: "All Projects - GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "desktop-projects", createdAt: timestamp, updatedAt: timestamp },
+    // Social Media folder content
+    { id: "social-linkedin", name: "LinkedIn.link", type: "file", fileType: "link", content: "https://www.linkedin.com/in/itsmebro", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-github", name: "GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-youtube", name: "YouTube.link", type: "file", fileType: "link", content: "https://youtube.com/@abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-x", name: "X (Twitter).link", type: "file", fileType: "link", content: "https://x.com/abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-instagram", name: "Instagram.link", type: "file", fileType: "link", content: "https://instagram.com/abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
   ];
 };
 

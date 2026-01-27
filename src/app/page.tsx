@@ -15,6 +15,21 @@ export default function Home() {
     if (osInView) setOsActive(true);
   }, [osInView]);
 
+  // Add keyboard listener for Enter key to navigate to AYOS
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "Enter" || e.key === " ") && !osActive) {
+        setOsActive(true);
+        const osSection = osSectionRef.current;
+        if (osSection) {
+          osSection.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [osActive]);
+
   return (
     <div className="w-full">
       {/* Hero Section - Landing Page with Matrix Background */}

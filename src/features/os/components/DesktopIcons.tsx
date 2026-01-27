@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Monitor, Globe2, Trash2, FileText, Calculator } from "lucide-react";
+import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings } from "lucide-react";
 import { DesktopIcon } from "@/config/os";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWindowStore } from "../state/useWindowStore";
@@ -10,6 +10,10 @@ import { appRegistry, AppId } from "../apps/registry";
 const iconLookup: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   "this-pc": Monitor,
   "notepad-ai": FileText,
+  paint: Paintbrush,
+  projects: Folder,
+  socials: Users,
+  settings: Settings,
   network: Globe2,
   "recycle-bin": Trash2,
   calculator: Calculator,
@@ -31,17 +35,30 @@ export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
   }, [toast]);
 
   const handleDoubleClick = (label: string, id: string) => {
+    console.log('Desktop icon double-clicked:', { label, id });
     setToast(`${label} opening...`);
     const mapping: Record<string, AppId> = {
       "this-pc": "my-computer",
       "recycle-bin": "recycle-bin",
       calculator: "calculator",
+      "notepad-ai": "notepad",
+      paint: "paint",
+      settings: "settings",
+      projects: "my-computer", // Open My Computer to Desktop/Projects
+      socials: "my-computer", // Open My Computer to Desktop/Social Media
     };
     const appId = mapping[id];
+    console.log('Mapped appId:', appId);
     if (appId && appRegistry[appId]) {
+      console.log('Opening window for:', appId);
       const newId = openWindow(appId);
+      console.log('Window ID:', newId);
       focusWindow(newId);
+      
+      // TODO: Navigate to specific folder for projects/socials
+      // This would require passing initial path to MyComputerApp
     } else {
+      console.log('No app found, calling onOpen');
       onOpen(label, id);
     }
   };

@@ -41,14 +41,19 @@ export function MatrixBackground() {
       drops[i] = Math.random() * -100;
     }
 
-    // Enhanced color palette with higher visibility
+    // Rainbow color palette with cycling colors
     const colors = [
-      "rgba(0, 255, 100, 1)",   // Bright neon green
-      "rgba(0, 255, 255, 1)",   // Bright cyan
-      "rgba(255, 0, 255, 1)",   // Neon magenta
-      "rgba(255, 100, 0, 1)",   // Neon orange
-      "rgba(0, 150, 255, 1)",   // Bright blue
+      "rgba(255, 0, 0, 1)",       // Red
+      "rgba(255, 127, 0, 1)",     // Orange
+      "rgba(255, 255, 0, 1)",     // Yellow
+      "rgba(0, 255, 0, 1)",       // Green
+      "rgba(0, 0, 255, 1)",       // Blue
+      "rgba(75, 0, 130, 1)",      // Indigo
+      "rgba(148, 0, 211, 1)",     // Violet
+      "rgba(255, 0, 127, 1)",     // Pink
     ];
+
+    let colorIndex = 0;
 
     function draw() {
       if (!ctx || !canvas) return;
@@ -57,13 +62,13 @@ export function MatrixBackground() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw spotlight effect around cursor
+      // Draw white spotlight effect around cursor
       const gradient = ctx.createRadialGradient(
         mousePos.x, mousePos.y, 0,
         mousePos.x, mousePos.y, 300
       );
-      gradient.addColorStop(0, "rgba(0, 255, 200, 0.15)");
-      gradient.addColorStop(0.5, "rgba(0, 255, 200, 0.05)");
+      gradient.addColorStop(0, "rgba(255, 255, 255, 0.15)");
+      gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.05)");
       gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -85,19 +90,9 @@ export function MatrixBackground() {
         const distance = Math.sqrt(dx * dx + dy * dy);
         const spotlightBoost = Math.max(0, 1 - distance / 400);
         
-        // Color selection with more variation
-        let baseColor;
-        if (spotlightBoost > 0.5) {
-          baseColor = colors[2]; // Magenta near cursor
-        } else if (i % 5 === 0) {
-          baseColor = colors[1]; // Cyan for accent columns
-        } else if (i % 7 === 0) {
-          baseColor = colors[4]; // Blue for variation
-        } else if (i % 11 === 0) {
-          baseColor = colors[3]; // Orange occasionally
-        } else {
-          baseColor = colors[0]; // Default neon green
-        }
+        // Rainbow color cycling - each column cycles through colors
+        const columnColorIndex = (i + colorIndex) % colors.length;
+        const baseColor = colors[columnColorIndex];
         
         // Enhanced alpha with spotlight effect
         const baseAlpha = drops[i] === 0 ? 1 : 0.5 + Math.random() * 0.3;
@@ -106,12 +101,13 @@ export function MatrixBackground() {
         ctx.fillStyle = baseColor;
         ctx.globalAlpha = alpha;
 
-        // Draw the character with glow effect near cursor
+        // Draw the character with glow effect - enhanced for rainbow
         if (spotlightBoost > 0.3) {
           ctx.shadowColor = baseColor;
-          ctx.shadowBlur = 10 + spotlightBoost * 20;
+          ctx.shadowBlur = 15 + spotlightBoost * 25;
         } else {
-          ctx.shadowBlur = 0;
+          ctx.shadowBlur = 3; // Subtle glow even without spotlight
+          ctx.shadowColor = baseColor;
         }
         
         ctx.fillText(text, x, y);
@@ -124,6 +120,9 @@ export function MatrixBackground() {
         // Move drop down
         drops[i]++;
       }
+
+      // Cycle through colors for animation effect
+      colorIndex = (colorIndex + 0.01) % colors.length;
 
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;

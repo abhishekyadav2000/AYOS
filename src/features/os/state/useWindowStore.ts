@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { AppId, appRegistry } from "../apps/registry";
+import type { AppId } from "../apps/registry";
+import { appRegistry } from "../apps/registry";
 
 const TASKBAR_HEIGHT = 72;
 const MIN_WIDTH = 360;

@@ -1,12 +1,14 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { osConfig } from "@/config/os";
 import { siteConfig } from "@/config/site";
 import { DesktopIcons } from "./components/DesktopIcons";
 import { WindowLayer } from "./components/WindowLayer";
 import { Windows11Taskbar } from "./components/Windows11Taskbar";
+import { ThemeProvider } from "./ThemeContext";
 
 interface Windows11OSProps {
   showWelcome?: boolean;
@@ -15,6 +17,7 @@ interface Windows11OSProps {
 }
 
 export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Windows11OSProps) {
+  const router = useRouter();
   const [notification, setNotification] = React.useState<string | null>(null);
   const [displayWelcome, setDisplayWelcome] = React.useState(showWelcome);
 
@@ -32,6 +35,9 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
     // Special handling for power option from Start Menu
     if (label === "Power") {
       setNotification("Exiting AYOS...");
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
       onExit?.();
       return;
     }
@@ -48,10 +54,11 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-transparent relative flex flex-col">
+    <ThemeProvider>
+      <div className="h-screen w-screen overflow-hidden bg-transparent relative flex flex-col">
 
-      {/* OS Content Container */}
-      <div className="flex-1 flex flex-col relative">
+        {/* OS Content Container */}
+        <div className="flex-1 flex flex-col relative">
         {/* Desktop Area */}
         <div className="flex-1 relative overflow-hidden">
           <DesktopIcons icons={osConfig.desktopIcons} onOpen={handleDesktopIconClick} />
@@ -163,6 +170,7 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }

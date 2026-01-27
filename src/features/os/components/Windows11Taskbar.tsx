@@ -9,6 +9,9 @@ import { StartMenu } from "./StartMenu";
 import { SystemTray } from "./SystemTray";
 import { PinnedApp, RecommendedItem } from "@/config/os";
 import { useWindowStore } from "../state/useWindowStore";
+import { appRegistry } from "../apps/registry";
+import { SearchPanel } from "./SearchPanel";
+import { useFileSystemStore, FSNode } from "../state/useFileSystem";
 
 type Windows11TaskbarProps = {
   pinnedApps: PinnedApp[];
@@ -32,8 +35,10 @@ export function Windows11Taskbar({
   const focusWindow = useWindowStore((s) => s.focusWindow);
   const toggleMinimize = useWindowStore((s) => s.toggleMinimize);
   const [isStartOpen, setIsStartOpen] = React.useState(false);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [time, setTime] = React.useState<{ time: string; date: string }>({ time: "", date: "" });
   const startMenuRef = React.useRef<HTMLDivElement>(null);
+  const fs = useFileSystemStore((s) => s.fs);
 
   React.useEffect(() => {
     const updateTime = () => {
@@ -70,11 +75,14 @@ export function Windows11Taskbar({
 
   const handleAppOpen = (label: string) => {
     const normalize = label.toLowerCase();
-    const mapping: Record<string, "my-computer" | "recycle-bin" | "calculator"> = {
+    const mapping: Record<string, "my-computer" | "recycle-bin" | "calculator" | "notepad" | "paint"> = {
       "calculator": "calculator",
       "recycle bin": "recycle-bin",
       "my computer": "my-computer",
       "this pc": "my-computer",
+      "notepad": "notepad",
+      "notepad ai": "notepad",
+      "paint": "paint",
     };
 
     const appId = mapping[normalize];
@@ -99,6 +107,7 @@ export function Windows11Taskbar({
 
   const displayedApps = pinnedApps.slice(0, 5);
   const openAppIds = new Set(windows.filter((w) => !w.isMinimized).map((w) => w.appId));
+  const minimizedWindows = windows.filter((w) => w.isMinimized);
 
   return (
     <>
@@ -131,10 +140,13 @@ export function Windows11Taskbar({
 
           {/* Search */}
           <button
-            onClick={onSearch}
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
             aria-label="Search"
             title="Search"
-            className="h-10 px-4 min-w-[280px] rounded-md bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all duration-200 flex items-center gap-3 group"
+            className={clsx(
+              "h-10 px-4 min-w-[280px] rounded-md bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all duration-200 flex items-center gap-3 group",
+              isSearchOpen && "bg-white/15 border-white/30 ring-2 ring-cyan-400/50"
+            )}
           >
             <Search size={16} className="text-white/70 group-hover:text-white transition" />
             <span className="text-sm">Type here to search</span>
@@ -153,11 +165,34 @@ export function Windows11Taskbar({
                 onClick={() => handleAppOpen(app.label)}
                 aria-label={app.label}
                 title={app.label}
-                className="h-10 w-10 rounded-md bg-white/0 hover:bg-white/10 border border-transparent hover:border-white/10 text-white/80 hover:text-white transition-all duration-200 flex items-center justify-center relative group"
+                className="h-10 w-10 rounded-md bg-white/0 hover:bg-white/10 border border-transparent hover:border-white/10 text-white/80 hover:text-white transition-all duration-200 flex items-center justify-center relative group pointer-events-auto"
               >
                 {Icon ? <Icon size={20} /> : null}
                 {/* Active indicator */}
                 <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 transition ${isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
+              </button>
+            );
+          })}
+
+          {/* Minimized Windows */}
+          {minimizedWindows.length > 0 && <div className="h-6 w-px bg-white/10 mx-1" />}
+          {minimizedWindows.map((win) => {
+            const app = appRegistry[win.appId];
+            if (!app) return null;
+            const Icon = resolveIcon(app.icon);
+            return (
+              <button
+                key={win.id}
+                onClick={() => {
+                  toggleMinimize(win.id);
+                  focusWindow(win.id);
+                }}
+                aria-label={win.title}
+                title={win.title}
+                className="h-10 w-10 rounded-md bg-white/10 hover:bg-white/15 border border-white/15 text-white transition-all duration-200 flex items-center justify-center relative group pointer-events-auto"
+              >
+                {Icon ? <Icon size={18} /> : null}
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-0.5 rounded-full bg-cyan-400" />
               </button>
             );
           })}
@@ -182,6 +217,32 @@ export function Windows11Taskbar({
           />
         ) : null}
       </AnimatePresence>
+
+      {/* Search Panel */}
+      <SearchPanel
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectFile={(file) => {
+          setIsSearchOpen(false);
+          // Open My Computer and navigate to the parent directory of the selected file
+          if (fs.nodes) {
+            const parentId = file.parentId || "root";
+            // Store the target path for My Computer to navigate to
+            const existing = windows.find((w) => w.appId === "my-computer");
+            if (existing) {
+              if (existing.isMinimized) {
+                toggleMinimize(existing.id);
+                focusWindow(existing.id);
+              } else {
+                focusWindow(existing.id);
+              }
+            } else {
+              const id = openWindow("my-computer");
+              focusWindow(id);
+            }
+          }
+        }}
+      />
     </>
   );
 }
