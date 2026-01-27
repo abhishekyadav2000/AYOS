@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { osConfig } from "@/config/os";
 import { siteConfig } from "@/config/site";
 import { DesktopIcons } from "./components/DesktopIcons";
-import { Taskbar } from "./components/Taskbar";
 import { WindowLayer } from "./components/WindowLayer";
+import { Windows11Taskbar } from "./components/Windows11Taskbar";
 
 interface Windows11OSProps {
   showWelcome?: boolean;
@@ -59,7 +59,14 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
         </div>
 
         {/* Taskbar - Always at bottom */}
-        <Taskbar />
+        <Windows11Taskbar
+          pinnedApps={osConfig.pinnedApps}
+          recommendedItems={osConfig.recommendedItems}
+          userName={osConfig.userName}
+          osName={osConfig.osName}
+          onSearch={handleSearch}
+          onAppOpen={handleAppOpen}
+        />
       </div>
 
       {/* Welcome Overlay - Only shows on first visit */}

@@ -1,57 +1,89 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Monitor, Calculator, Trash2 } from "lucide-react";
-import { useWindowStore } from "../state/useWindowStore";
-import { appList } from "../apps/registry";
+import clsx from "clsx";
+import { PinnedApp } from "@/config/os";
+import { IconButton, resolveIcon } from "./IconButton";
+import { SystemTray } from "./SystemTray";
+import { Search } from "lucide-react";
 
-const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  "my-computer": Monitor,
-  "recycle-bin": Trash2,
-  calculator: Calculator,
+type TaskbarProps = {
+  startOpen: boolean;
+  onToggleStart: () => void;
+  onToggleSearch: () => void;
+  pinnedApps: PinnedApp[];
+  onAppSelect: (label: string) => void;
+  timeLabel: string;
+  dateLabel: string;
+  osLabel?: string;
 };
 
-export function Taskbar() {
-  const windows = useWindowStore((s) => s.windows);
-  const openWindow = useWindowStore((s) => s.openWindow);
-  const toggleMinimize = useWindowStore((s) => s.toggleMinimize);
-  const focusWindow = useWindowStore((s) => s.focusWindow);
-
+export function Taskbar({
+  startOpen,
+  onToggleStart,
+  onToggleSearch,
+  pinnedApps,
+  onAppSelect,
+  timeLabel,
+  dateLabel,
+  osLabel = "Abhishek OS",
+}: TaskbarProps) {
   return (
-    <motion.div
-      initial={{ y: 80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="fixed bottom-0 left-0 right-0 h-[72px] z-40 flex items-center justify-center"
-    >
-      <div className="w-full mx-auto max-w-6xl h-full flex items-center gap-2 px-4">
-        <div className="flex items-center gap-2 bg-black/60 border border-white/10 backdrop-blur-xl rounded-full px-4 py-2 shadow-2xl">
-          {windows.map((win) => {
-            const Icon = iconMap[win.appId] ?? Monitor;
-            const minimized = win.isMinimized;
-            return (
-              <button
-                key={win.id}
-                onClick={() => {
-                  if (minimized) {
-                    toggleMinimize(win.id);
-                    focusWindow(win.id);
-                  } else {
-                    toggleMinimize(win.id);
-                  }
-                }}
-                className={`h-10 px-3 rounded-lg border text-white flex items-center gap-2 transition ${
-                  minimized ? "border-transparent hover:bg-white/10" : "border-cyan-400/40 bg-white/10"
-                }`}
-                title={win.title}
-              >
-                {<Icon size={18} className={minimized ? "text-white" : "text-cyan-300"} />}
-                <span className="text-xs whitespace-nowrap">{win.title}</span>
-              </button>
-            );
-          })}
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full flex justify-center px-3 pointer-events-none">
+      <div className="flex items-center justify-between gap-6 rounded-3xl bg-white/10 border border-white/15 shadow-2xl backdrop-blur-2xl px-4 py-2 w-full max-w-5xl pointer-events-auto">
+        <div className="flex items-center gap-2">
+          <button
+            aria-label="Open Start"
+            onClick={onToggleStart}
+            data-ayos-start-button
+            className={clsx(
+              "h-11 w-11 rounded-2xl border border-white/10 bg-white/10 flex items-center justify-center transition",
+              "hover:bg-white/15 hover:border-white/20",
+              startOpen && "ring-2 ring-cyan-300/70",
+            )}
+          >
+            <WindowsLogo />
+          </button>
+
+          <IconButton
+            ariaLabel="Search"
+            icon={Search}
+            tooltip="Search"
+            onClick={onToggleSearch}
+            className="ml-1"
+          />
+
+          <div className="flex items-center gap-1 px-2">
+            {pinnedApps.map((app) => {
+              const Icon = resolveIcon(app.icon) ?? undefined;
+              return (
+                <IconButton
+                  key={app.id}
+                  icon={Icon || undefined}
+                  ariaLabel={app.label}
+                  tooltip={app.label}
+                  onClick={() => onAppSelect(app.label)}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block text-xs text-white/70 pr-2 border-r border-white/10">{osLabel}</div>
+          <SystemTray timeLabel={timeLabel} dateLabel={dateLabel} />
         </div>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+function WindowsLogo() {
+  return (
+    <div className="grid grid-cols-2 grid-rows-2 gap-0.5 h-6 w-6 text-white">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="bg-white/90 rounded-sm" />
+      ))}
+    </div>
   );
 }
