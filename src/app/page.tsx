@@ -1,148 +1,156 @@
 "use client";
 
-import { Container } from "@/components/ui/Container";
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Windows11OS } from "@/features/os/Windows11OS";
+import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/Button";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { Terminal, Code, Briefcase, Mail, Rocket } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
+
+const WELCOME_STORAGE_KEY = "ayos_welcomed";
 
 export default function Home() {
-  const router = useRouter();
+  const [isWelcomed, setIsWelcomed] = React.useState(false);
+  const [showGuide, setShowGuide] = React.useState(false);
 
-  const mainActions = [
-    {
-      icon: Terminal,
-      label: "Launch AYOS",
-      description: "Experience the interactive OS",
-      href: "/os",
-      color: "from-cyan-400 to-blue-500",
-      primary: true,
-    },
-    {
-      icon: Briefcase,
-      label: "Projects",
-      description: "View my work",
-      href: "/projects",
-      color: "from-purple-400 to-pink-500",
-    },
-    {
-      icon: Code,
-      label: "Blog",
-      description: "Read articles",
-      href: "/blog",
-      color: "from-green-400 to-emerald-500",
-    },
-    {
-      icon: Mail,
-      label: "Contact",
-      description: "Get in touch",
-      href: "/contact",
-      color: "from-orange-400 to-red-500",
-    },
-  ];
+  React.useEffect(() => {
+    // Check if user has been welcomed before
+    const hasWelcomed = localStorage.getItem(WELCOME_STORAGE_KEY);
+    if (hasWelcomed) {
+      setIsWelcomed(true);
+      setShowGuide(false);
+    } else {
+      setShowGuide(true);
+    }
+  }, []);
+
+  const handleCloseGuide = () => {
+    setIsWelcomed(true);
+    setShowGuide(false);
+    localStorage.setItem(WELCOME_STORAGE_KEY, "true");
+  };
+
+  const handleNewUserGuide = () => {
+    setShowGuide(true);
+  };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Gradient orbs */}
-      <div className="absolute top-20 right-20 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl -z-10 animate-pulse" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" style={{ animationDelay: '1s' }} />
+    <div className="w-full h-screen overflow-hidden">
+      {/* Main OS Interface */}
+      <Windows11OS showWelcome={!isWelcomed} onWelcomeClose={handleCloseGuide} />
 
-      <Container className="text-center py-20">
-        {/* Main Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h1 className="text-6xl md:text-8xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Abhishek Yadav
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto">
-            Full-Stack Developer & Security Researcher
-            <br />
-            <span className="text-lg text-gray-500">
-              Building the future, one line of code at a time
-            </span>
-          </p>
-        </motion.div>
-
-        {/* Action Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-          {mainActions.map((action, index) => {
-            const Icon = action.icon;
-            return (
-              <motion.div
-                key={action.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  href={action.href}
-                  className={`block relative overflow-hidden rounded-2xl p-8 backdrop-blur-lg transition-all duration-300 ${
-                    action.primary
-                      ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/50'
-                      : 'bg-white/5 border border-white/10 hover:border-white/30'
-                  }`}
-                >
-                  <div className="relative z-10">
-                    <div
-                      className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${action.color} mb-4`}
-                    >
-                      <Icon size={32} className="text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">
-                      {action.label}
-                    </h3>
-                    <p className="text-gray-400">{action.description}</p>
-                    {action.primary && (
-                      <div className="mt-4 flex items-center justify-center gap-2 text-cyan-400">
-                        <Rocket size={20} />
-                        <span className="text-sm font-semibold">
-                          Click to Launch
-                        </span>
-                      </div>
-                    )}
+      {/* Welcome Guide Modal */}
+      <AnimatePresence>
+        {showGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/95 backdrop-blur-lg rounded-2xl max-w-2xl w-full shadow-2xl border border-white/20 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-cyan-500 to-indigo-500 px-8 py-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">
+                      Welcome to AYOS
+                    </h1>
+                    <p className="text-white/90 text-lg">
+                      The interactive operating system of {siteConfig.name}
+                    </p>
                   </div>
-                  
-                  {/* Hover glow effect */}
-                  <div
-                    className={`absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${action.color} blur-2xl -z-10`}
-                    style={{ transform: 'scale(0.8)' }}
-                  />
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Quick Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-8 text-center"
-        >
-          {[
-            { label: "Years Experience", value: "5+" },
-            { label: "Projects Completed", value: "50+" },
-            { label: "Technologies", value: "20+" },
-            { label: "Coffee Consumed", value: "∞" },
-          ].map((stat, i) => (
-            <div key={i} className="px-6">
-              <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-transparent">
-                {stat.value}
+                  <button
+                    onClick={handleCloseGuide}
+                    className="text-white hover:bg-white/20 p-2 rounded-lg transition"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
-              <div className="text-sm text-gray-500">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
-      </Container>
+
+              {/* Content */}
+              <div className="p-8 space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">
+                    🎮 Getting Started
+                  </h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex gap-3">
+                      <span className="text-2xl">🖱️</span>
+                      <span>
+                        <strong>Desktop Icons:</strong> Click on icons to open
+                        applications and explore content
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-2xl">💼</span>
+                      <span>
+                        <strong>My PC:</strong> Open to browse projects and
+                        work files
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-2xl">📝</span>
+                      <span>
+                        <strong>Notepad AI:</strong> Write and get AI assistance
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-2xl">⚙️</span>
+                      <span>
+                        <strong>Taskbar:</strong> Access pinned apps at the
+                        bottom
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">
+                    🌟 Features
+                  </h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>✨ Interactive applications and games</li>
+                    <li>🎨 Real computer experience with modern UI</li>
+                    <li>🔍 Explore projects and portfolio content</li>
+                    <li>📧 Contact directly from the OS</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-900 text-sm">
+                    💡 <strong>Tip:</strong> This is a fully interactive
+                    operating system. Click around, explore, and enjoy!
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 border-t border-gray-200 px-8 py-4 flex justify-between items-center">
+                <button
+                  onClick={handleCloseGuide}
+                  className="text-gray-600 hover:text-gray-900 transition font-medium"
+                >
+                  I'll Figure it Out
+                </button>
+                <Button
+                  onClick={handleCloseGuide}
+                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white"
+                >
+                  Let's Go! 🚀
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

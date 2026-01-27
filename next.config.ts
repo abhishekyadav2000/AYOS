@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  images: {
+    qualities: [75, 100],
+  },
 };
 
 export default withMDX(nextConfig);
