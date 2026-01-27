@@ -5,8 +5,9 @@ import { RecycleBinApp } from "./RecycleBinApp";
 import { NotepadApp } from "./NotepadApp";
 import { PaintApp } from "./PaintApp";
 import { SettingsApp } from "./SettingsApp";
+import { AboutApp } from "./AboutApp";
 
-export type AppId = "my-computer" | "recycle-bin" | "calculator" | "notepad" | "paint" | "settings";
+export type AppId = "my-computer" | "recycle-bin" | "calculator" | "notepad" | "paint" | "settings" | "about";
 
 type AppDefinition = {
 	appId: AppId;
@@ -59,6 +60,13 @@ export const appRegistry: Record<AppId, AppDefinition> = {
 		icon: "settings",
 		component: () => React.createElement(SettingsApp),
 		defaultSize: { w: 600, h: 500 },
+	},
+	about: {
+		appId: "about",
+		title: "About Me",
+		icon: "user",
+		component: () => React.createElement(AboutApp),
+		defaultSize: { w: 800, h: 700 },
 	},
 };
 

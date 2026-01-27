@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings } from "lucide-react";
+import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings, User } from "lucide-react";
 import { DesktopIcon } from "@/config/os";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWindowStore } from "../state/useWindowStore";
@@ -13,6 +13,7 @@ const iconLookup: Record<string, React.ComponentType<{ size?: number; className?
   paint: Paintbrush,
   projects: Folder,
   socials: Users,
+  about: User,
   settings: Settings,
   network: Globe2,
   "recycle-bin": Trash2,
@@ -44,6 +45,7 @@ export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
       "notepad-ai": "notepad",
       paint: "paint",
       settings: "settings",
+      about: "about",
       projects: "my-computer", // Open My Computer to Desktop/Projects
       socials: "my-computer", // Open My Computer to Desktop/Social Media
     };

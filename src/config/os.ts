@@ -34,6 +34,7 @@ export const osConfig: OSConfig = {
     { id: "this-pc", label: "This PC" },
     { id: "projects", label: "Projects" },
     { id: "socials", label: "Social Media" },
+    { id: "about", label: "About Me" },
     { id: "notepad-ai", label: "Notepad AI" },
     { id: "paint", label: "Paint" },
     { id: "calculator", label: "Calculator" },
