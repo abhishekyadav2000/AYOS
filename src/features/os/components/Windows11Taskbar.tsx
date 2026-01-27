@@ -77,60 +77,65 @@ export function Windows11Taskbar({
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
         className={clsx(
-          "fixed bottom-6 left-1/2 -translate-x-1/2 z-40",
-          "px-6 py-3 rounded-full",
-          "bg-white/10 border border-white/20 backdrop-blur-2xl shadow-2xl",
-          "flex items-center justify-between gap-4",
+          "fixed bottom-0 left-0 right-0 z-40",
+          "px-6 py-2 h-14",
+          "bg-black/40 border-t border-white/10 backdrop-blur-3xl shadow-2xl",
+          "flex items-center justify-center gap-2",
         )}
       >
-        {/* Start Button */}
-        <button
-          onClick={() => setIsStartOpen(!isStartOpen)}
-          aria-label="Start"
-          title="Start"
-          className={clsx(
-            "h-11 w-11 rounded-lg bg-white/15 border border-white/20 text-white",
-            "hover:bg-white/25 hover:border-white/30 shadow-md backdrop-blur-xl transition",
-            isStartOpen && "ring-2 ring-cyan-300/70",
-          )}
-        >
-          <Wind size={20} className="drop-shadow" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Start Button */}
+          <button
+            onClick={() => setIsStartOpen(!isStartOpen)}
+            aria-label="Start"
+            title="Start"
+            className={clsx(
+              "h-10 w-10 rounded-md bg-white/5 border border-white/10 text-white",
+              "hover:bg-white/15 hover:border-white/20 transition-all duration-200",
+              "flex items-center justify-center",
+              isStartOpen && "bg-white/15 ring-2 ring-cyan-400/50",
+            )}
+          >
+            <Wind size={20} className="drop-shadow" />
+          </button>
 
-        {/* Divider */}
-        <div className="h-6 w-px bg-white/10" />
+          {/* Search */}
+          <button
+            onClick={onSearch}
+            aria-label="Search"
+            title="Search"
+            className="h-10 px-4 min-w-[280px] rounded-md bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all duration-200 flex items-center gap-3 group"
+          >
+            <Search size={16} className="text-white/70 group-hover:text-white transition" />
+            <span className="text-sm">Type here to search</span>
+          </button>
 
-        {/* Search */}
-        <button
-          onClick={onSearch}
-          aria-label="Search"
-          title="Search"
-          className="h-11 w-11 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 hover:border-white/15 shadow-sm transition flex items-center justify-center"
-        >
-          <Search size={18} />
-        </button>
+          {/* Divider */}
+          <div className="h-6 w-px bg-white/10 mx-1" />
 
-        {/* Pinned Apps */}
-        {displayedApps.map((app) => {
-          const Icon = resolveIcon(app.icon);
-          return (
-            <button
-              key={app.id}
-              onClick={() => handleAppOpen(app.label)}
-              aria-label={app.label}
-              title={app.label}
-              className="h-11 w-11 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/15 hover:border-white/20 shadow-sm transition flex items-center justify-center"
-            >
-              {Icon ? <Icon size={18} /> : null}
-            </button>
-          );
-        })}
+          {/* Pinned Apps */}
+          {displayedApps.map((app) => {
+            const Icon = resolveIcon(app.icon);
+            return (
+              <button
+                key={app.id}
+                onClick={() => handleAppOpen(app.label)}
+                aria-label={app.label}
+                title={app.label}
+                className="h-10 w-10 rounded-md bg-white/0 hover:bg-white/10 border border-transparent hover:border-white/10 text-white/80 hover:text-white transition-all duration-200 flex items-center justify-center relative group"
+              >
+                {Icon ? <Icon size={20} /> : null}
+                {/* Active indicator */}
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition" />
+              </button>
+            );
+          })}
+        </div>
 
-        {/* Divider */}
-        <div className="h-6 w-px bg-white/10" />
-
-        {/* System Tray */}
-        <SystemTray timeLabel={time.time} dateLabel={time.date} />
+        {/* System Tray - positioned at right */}
+        <div className="absolute right-4">
+          <SystemTray timeLabel={time.time} dateLabel={time.date} />
+        </div>
       </motion.div>
 
       {/* Start Menu */}

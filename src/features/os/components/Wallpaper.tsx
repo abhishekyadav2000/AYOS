@@ -1,17 +1,28 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export function Wallpaper() {
   return (
-    <div className="fixed inset-0 -z-20 bg-slate-950">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/wallpapers/win11.jpg')" }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(120,200,255,0.18),transparent_35%),radial-gradient(circle_at_70%_60%,rgba(30,120,255,0.22),transparent_32%)]" />
-      <div className="absolute inset-0 bg-black/30" />
-      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08),rgba(255,255,255,0)_60%)] mix-blend-screen" />
+    <div className="fixed inset-0 -z-20 bg-black">
+      {/* Deadpool wallpaper */}
+      <div className="absolute inset-0">
+        <Image
+          src="/wallpapers/deadpool.jpg"
+          alt="Deadpool Wallpaper"
+          fill
+          className="object-cover"
+          priority
+          quality={100}
+        />
+      </div>
+      
+      {/* Subtle overlay for better contrast with UI elements */}
+      <div className="absolute inset-0 bg-black/20" />
+      
+      {/* Windows 11 style acrylic effect overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/10 backdrop-blur-[0.5px]" />
     </div>
   );
 }
