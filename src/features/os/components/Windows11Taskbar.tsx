@@ -8,6 +8,7 @@ import { IconButton, resolveIcon } from "./IconButton";
 import { StartMenu } from "./StartMenu";
 import { SystemTray } from "./SystemTray";
 import { PinnedApp, RecommendedItem } from "@/config/os";
+import { useWindowStore } from "../state/useWindowStore";
 
 type Windows11TaskbarProps = {
   pinnedApps: PinnedApp[];
@@ -26,6 +27,10 @@ export function Windows11Taskbar({
   onSearch,
   onAppOpen,
 }: Windows11TaskbarProps) {
+  const windows = useWindowStore((s) => s.windows);
+  const openWindow = useWindowStore((s) => s.openWindow);
+  const focusWindow = useWindowStore((s) => s.focusWindow);
+  const toggleMinimize = useWindowStore((s) => s.toggleMinimize);
   const [isStartOpen, setIsStartOpen] = React.useState(false);
   const [time, setTime] = React.useState<{ time: string; date: string }>({ time: "", date: "" });
   const startMenuRef = React.useRef<HTMLDivElement>(null);
@@ -64,11 +69,36 @@ export function Windows11Taskbar({
   }, [isStartOpen]);
 
   const handleAppOpen = (label: string) => {
-    onAppOpen(label);
+    const normalize = label.toLowerCase();
+    const mapping: Record<string, "my-computer" | "recycle-bin" | "calculator"> = {
+      "calculator": "calculator",
+      "recycle bin": "recycle-bin",
+      "my computer": "my-computer",
+      "this pc": "my-computer",
+    };
+
+    const appId = mapping[normalize];
+    if (appId) {
+      const existing = windows.find((w) => w.appId === appId);
+      if (existing) {
+        if (existing.isMinimized) {
+          toggleMinimize(existing.id);
+          focusWindow(existing.id);
+        } else {
+          toggleMinimize(existing.id);
+        }
+      } else {
+        const id = openWindow(appId);
+        focusWindow(id);
+      }
+    } else {
+      onAppOpen(label);
+    }
     setIsStartOpen(false);
   };
 
   const displayedApps = pinnedApps.slice(0, 5);
+  const openAppIds = new Set(windows.filter((w) => !w.isMinimized).map((w) => w.appId));
 
   return (
     <>
@@ -116,6 +146,7 @@ export function Windows11Taskbar({
           {/* Pinned Apps */}
           {displayedApps.map((app) => {
             const Icon = resolveIcon(app.icon);
+            const isOpen = openAppIds.has(app.id as any) || openAppIds.has(app.label.toLowerCase() as any);
             return (
               <button
                 key={app.id}
@@ -126,7 +157,7 @@ export function Windows11Taskbar({
               >
                 {Icon ? <Icon size={20} /> : null}
                 {/* Active indicator */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition" />
+                <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 transition ${isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
               </button>
             );
           })}
