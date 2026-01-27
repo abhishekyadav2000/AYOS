@@ -33,6 +33,7 @@ export const osConfig: OSConfig = {
   desktopIcons: [
     { id: "this-pc", label: "This PC" },
     { id: "notepad-ai", label: "Notepad AI" },
+    { id: "calculator", label: "Calculator" },
     { id: "recycle-bin", label: "Recycle Bin" },
   ],
   pinnedApps: [

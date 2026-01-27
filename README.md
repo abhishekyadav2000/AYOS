@@ -262,6 +262,12 @@ The project is compatible with:
 - [Framer Motion](https://www.framer.com/motion)
 - [MDX](https://mdxjs.com)
 
+## 🪟 OS Apps Registry
+
+- Register new desktop apps in [src/features/os/apps/registry.ts](src/features/os/apps/registry.ts) with `appId`, `title`, `icon`, and the React component to render.
+- Add a desktop shortcut by including the same id in [src/config/os.ts](src/config/os.ts) under `desktopIcons`.
+- The window manager handles open/focus/minimize/maximize/restore/close automatically for registered apps.
+
 ## 📄 License
 
 This project is open source and available under the MIT License.

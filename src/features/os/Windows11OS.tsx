@@ -5,9 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { osConfig } from "@/config/os";
 import { siteConfig } from "@/config/site";
 import { DesktopIcons } from "./components/DesktopIcons";
-import { Windows11Taskbar } from "./components/Windows11Taskbar";
-import { MyPCWindow } from "./components/MyPCWindow";
-import { NotepadAIWindow } from "./components/NotepadAIWindow";
+import { Taskbar } from "./components/Taskbar";
+import { WindowLayer } from "./components/WindowLayer";
 
 interface Windows11OSProps {
   showWelcome?: boolean;
@@ -18,7 +17,6 @@ interface Windows11OSProps {
 export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Windows11OSProps) {
   const [notification, setNotification] = React.useState<string | null>(null);
   const [displayWelcome, setDisplayWelcome] = React.useState(showWelcome);
-  const [openWindows, setOpenWindows] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (!notification) return;
@@ -27,10 +25,7 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
   }, [notification]);
 
   const handleDesktopIconClick = (label: string, id: string) => {
-    // Open window after a short delay
-    setTimeout(() => {
-      setOpenWindows((prev) => new Set([...prev, id]));
-    }, 200);
+    setNotification(`${label} launched`);
   };
 
   const handleAppOpen = (label: string) => {
@@ -52,14 +47,6 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
     onWelcomeClose?.();
   };
 
-  const handleCloseWindow = (windowId: string) => {
-    setOpenWindows((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(windowId);
-      return newSet;
-    });
-  };
-
   return (
     <div className="h-screen w-screen overflow-hidden bg-transparent relative flex flex-col">
 
@@ -68,27 +55,11 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
         {/* Desktop Area */}
         <div className="flex-1 relative overflow-hidden">
           <DesktopIcons icons={osConfig.desktopIcons} onOpen={handleDesktopIconClick} />
-
-          {/* Open Windows */}
-          <AnimatePresence>
-            {openWindows.has("this-pc") && (
-              <MyPCWindow onClose={() => handleCloseWindow("this-pc")} />
-            )}
-            {openWindows.has("notepad-ai") && (
-              <NotepadAIWindow onClose={() => handleCloseWindow("notepad-ai")} />
-            )}
-          </AnimatePresence>
+          <WindowLayer />
         </div>
 
         {/* Taskbar - Always at bottom */}
-        <Windows11Taskbar
-          pinnedApps={osConfig.pinnedApps}
-          recommendedItems={osConfig.recommendedItems}
-          userName={osConfig.userName}
-          osName={osConfig.osName}
-          onSearch={handleSearch}
-          onAppOpen={handleAppOpen}
-        />
+        <Taskbar />
       </div>
 
       {/* Welcome Overlay - Only shows on first visit */}
