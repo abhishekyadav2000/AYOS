@@ -29,7 +29,7 @@ export function Windows11OS() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black">
+    <div className="h-screen w-screen overflow-hidden bg-black relative">
       <Wallpaper />
       <DesktopIcons icons={osConfig.desktopIcons} onOpen={handleDesktopIconClick} />
       <Windows11Taskbar

@@ -82,7 +82,6 @@ export function Windows11Taskbar({
           "bg-white/10 border border-white/20 backdrop-blur-2xl shadow-2xl",
           "flex items-center justify-between gap-4",
         )}
-        style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 1.5rem)` }}
       >
         {/* Start Button */}
         <button
