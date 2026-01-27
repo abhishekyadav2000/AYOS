@@ -4,43 +4,47 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { osConfig } from "@/config/os";
 import { siteConfig } from "@/config/site";
-import { Wallpaper } from "./components/Wallpaper";
 import { DesktopIcons } from "./components/DesktopIcons";
 import { Windows11Taskbar } from "./components/Windows11Taskbar";
 import { MyPCWindow } from "./components/MyPCWindow";
 import { NotepadAIWindow } from "./components/NotepadAIWindow";
-import { X } from "lucide-react";
 
 interface Windows11OSProps {
   showWelcome?: boolean;
   onWelcomeClose?: () => void;
+  onExit?: () => void; // exit back to hero
 }
 
-export function Windows11OS({ showWelcome = false, onWelcomeClose }: Windows11OSProps) {
+export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Windows11OSProps) {
   const [notification, setNotification] = React.useState<string | null>(null);
   const [displayWelcome, setDisplayWelcome] = React.useState(showWelcome);
   const [openWindows, setOpenWindows] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     if (!notification) return;
-    const timer = setTimeout(() => setNotification(null), 3000);
+    const timer = setTimeout(() => setNotification(null), 2500);
     return () => clearTimeout(timer);
   }, [notification]);
 
   const handleDesktopIconClick = (label: string, id: string) => {
-    setNotification(`Opening ${label}...`);
     // Open window after a short delay
     setTimeout(() => {
       setOpenWindows((prev) => new Set([...prev, id]));
-    }, 300);
+    }, 200);
   };
 
   const handleAppOpen = (label: string) => {
-    setNotification(`Launched: ${label}`);
+    // Special handling for power option from Start Menu
+    if (label === "Power") {
+      setNotification("Exiting AYOS...");
+      onExit?.();
+      return;
+    }
+    setNotification(`${label} launched`);
   };
 
   const handleSearch = () => {
-    setNotification("Search not yet implemented");
+    setNotification("🔍 Search feature coming soon");
   };
 
   const handleCloseWelcome = () => {
@@ -57,67 +61,66 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose }: Windows11OS
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-black relative">
-      <Wallpaper />
-      <DesktopIcons icons={osConfig.desktopIcons} onOpen={handleDesktopIconClick} />
-      <Windows11Taskbar
-        pinnedApps={osConfig.pinnedApps}
-        recommendedItems={osConfig.recommendedItems}
-        userName={osConfig.userName}
-        osName={osConfig.osName}
-        onSearch={handleSearch}
-        onAppOpen={handleAppOpen}
-      />
+    <div className="h-screen w-screen overflow-hidden bg-transparent relative flex flex-col">
 
-      {/* Open Windows */}
-      <AnimatePresence>
-        {openWindows.has("this-pc") && (
-          <MyPCWindow onClose={() => handleCloseWindow("this-pc")} />
-        )}
-        {openWindows.has("notepad-ai") && (
-          <NotepadAIWindow onClose={() => handleCloseWindow("notepad-ai")} />
-        )}
-      </AnimatePresence>
+      {/* OS Content Container */}
+      <div className="flex-1 flex flex-col relative">
+        {/* Desktop Area */}
+        <div className="flex-1 relative overflow-hidden">
+          <DesktopIcons icons={osConfig.desktopIcons} onOpen={handleDesktopIconClick} />
 
-      {/* Welcome Overlay */}
+          {/* Open Windows */}
+          <AnimatePresence>
+            {openWindows.has("this-pc") && (
+              <MyPCWindow onClose={() => handleCloseWindow("this-pc")} />
+            )}
+            {openWindows.has("notepad-ai") && (
+              <NotepadAIWindow onClose={() => handleCloseWindow("notepad-ai")} />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Taskbar - Always at bottom */}
+        <Windows11Taskbar
+          pinnedApps={osConfig.pinnedApps}
+          recommendedItems={osConfig.recommendedItems}
+          userName={osConfig.userName}
+          osName={osConfig.osName}
+          onSearch={handleSearch}
+          onAppOpen={handleAppOpen}
+        />
+      </div>
+
+      {/* Welcome Overlay - Only shows on first visit */}
       <AnimatePresence>
         {displayWelcome && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center"
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-50 bg-gradient-to-b from-black/60 via-black/40 to-black/60 backdrop-blur-xl flex items-center justify-center"
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              transition={{ duration: 0.4 }}
-              className="text-center space-y-6 max-w-2xl"
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-center space-y-8 max-w-2xl px-6"
             >
-              {/* Close button */}
-              <button
-                onClick={handleCloseWelcome}
-                className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-2 text-white transition"
-              >
-                <X size={24} />
-              </button>
-
-              {/* Animated Welcome Text */}
+              {/* Large Welcome Text */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="space-y-4"
               >
-                <h1 className="text-7xl md:text-8xl font-bold mb-4">
-                  <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    {siteConfig.name}
+                <h1 className="text-8xl md:text-9xl font-bold">
+                  <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    {siteConfig.name.split(" ")[0]}
                   </span>
                 </h1>
-                <p className="text-2xl text-white/90 mb-2">
-                  Welcome to AYOS
-                </p>
-                <p className="text-lg text-white/70">
+                <p className="text-3xl text-white/80 font-light">
                   {siteConfig.title}
                 </p>
               </motion.div>
@@ -126,22 +129,29 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose }: Windows11OS
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="space-y-4"
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="space-y-3"
               >
-                <p className="text-white/80 text-lg max-w-xl mx-auto">
+                <p className="text-xl text-white/70">
                   {siteConfig.tagline}
                 </p>
-                <div className="flex items-center justify-center gap-4 text-white/60 text-sm">
-                  <div className="flex gap-2">
-                    <span>💻</span>
-                    <span>Double-click icons to explore</span>
-                  </div>
-                  <span className="text-white/30">•</span>
-                  <div className="flex gap-2">
-                    <span>⚙️</span>
-                    <span>Use taskbar to access apps</span>
-                  </div>
+              </motion.div>
+
+              {/* Quick Guide */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex items-center justify-center gap-6 text-white/60 text-sm pt-4"
+              >
+                <div className="flex gap-2 items-center">
+                  <span className="text-lg">💻</span>
+                  <span>Click icons to open</span>
+                </div>
+                <div className="text-white/20">•</div>
+                <div className="flex gap-2 items-center">
+                  <span className="text-lg">⚙️</span>
+                  <span>Use taskbar</span>
                 </div>
               </motion.div>
 
@@ -149,11 +159,12 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose }: Windows11OS
               <motion.button
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
                 onClick={handleCloseWelcome}
-                className="mt-8 px-8 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-bold text-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105"
+                className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500/70 via-blue-500/70 to-purple-500/70 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 px-8 py-4 font-semibold text-white text-lg shadow-lg hover:shadow-2xl hover:shadow-cyan-500/20 backdrop-blur-sm border border-white/20"
               >
-                Enter System →
+                <span className="relative z-10">Let's Begin →</span>
+                <div className="absolute inset-0 -z-10 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.button>
             </motion.div>
           </motion.div>
@@ -161,17 +172,19 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose }: Windows11OS
       </AnimatePresence>
 
       {/* Notification Toast */}
-      {notification ? (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="fixed top-8 right-8 z-50 px-6 py-4 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-xl shadow-xl text-white text-sm"
-        >
-          {notification}
-        </motion.div>
-      ) : null}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: 0 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: -20, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-8 right-8 z-40 px-6 py-3 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl shadow-lg text-white text-sm font-medium pointer-events-none"
+          >
+            {notification}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

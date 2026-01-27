@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/nav/Navbar";
-import { Footer } from "@/components/sections/Footer";
 import { MatrixBackground } from "@/components/MatrixBackground";
 import { siteConfig } from "@/config/site";
 
@@ -57,9 +55,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
         <MatrixBackground />
-        <Navbar />
-        <main className="pt-16">{children}</main>
-        <Footer />
+        <main>{children}</main>
       </body>
     </html>
   );

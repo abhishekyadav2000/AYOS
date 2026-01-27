@@ -1,156 +1,90 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Windows11OS } from "@/features/os/Windows11OS";
 import { siteConfig } from "@/config/site";
-import { Button } from "@/components/ui/Button";
-import { X } from "lucide-react";
-
-const WELCOME_STORAGE_KEY = "ayos_welcomed";
+import { ChevronDown } from "lucide-react";
 
 export default function Home() {
-  const [isWelcomed, setIsWelcomed] = React.useState(false);
-  const [showGuide, setShowGuide] = React.useState(false);
+  const osSectionRef = React.useRef<HTMLDivElement | null>(null);
+  const osInView = useInView(osSectionRef, { once: true, amount: 0.3 });
+  const [osActive, setOsActive] = React.useState(false);
 
   React.useEffect(() => {
-    // Check if user has been welcomed before
-    const hasWelcomed = localStorage.getItem(WELCOME_STORAGE_KEY);
-    if (hasWelcomed) {
-      setIsWelcomed(true);
-      setShowGuide(false);
-    } else {
-      setShowGuide(true);
-    }
-  }, []);
-
-  const handleCloseGuide = () => {
-    setIsWelcomed(true);
-    setShowGuide(false);
-    localStorage.setItem(WELCOME_STORAGE_KEY, "true");
-  };
-
-  const handleNewUserGuide = () => {
-    setShowGuide(true);
-  };
+    if (osInView) setOsActive(true);
+  }, [osInView]);
 
   return (
-    <div className="w-full h-screen overflow-hidden">
-      {/* Main OS Interface */}
-      <Windows11OS showWelcome={!isWelcomed} onWelcomeClose={handleCloseGuide} />
+    <div className="w-full">
+      {/* Hero Section - Landing Page with Matrix Background */}
+      {!osActive && (
+      <section className="h-screen w-full flex items-center justify-center relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center space-y-8 max-w-4xl px-6 z-10"
+        >
+          {/* Hero Heading */}
+          <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {siteConfig.name}
+            </span>
+          </h1>
 
-      {/* Welcome Guide Modal */}
-      <AnimatePresence>
-        {showGuide && (
+          {/* Hero Subheading */}
+          <p className="text-2xl md:text-3xl text-white/80 font-light">
+            We build micro businesses and AI‑powered products.
+          </p>
+
+          {/* Hero Description */}
+          <p className="text-lg md:text-xl text-white/60 max-w-3xl mx-auto leading-relaxed">
+            System engineer, architect, and designer — all in one. Crafting modern digital experiences with performance, security, and polish.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex items-center justify-center gap-3 pt-4">
+            <a href="#os" className="px-5 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white/90 transition">Enter AYOS</a>
+            <a href="/projects" className="px-5 py-2 rounded-lg border border-white/15 bg-white/0 hover:bg-white/10 text-white/80 transition">Projects</a>
+            <a href="/contact" className="px-5 py-2 rounded-lg border border-white/15 bg-white/0 hover:bg-white/10 text-white/80 transition">Contact</a>
+          </div>
+
+          {/* Scroll Indicator */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="pt-12"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white/95 backdrop-blur-lg rounded-2xl max-w-2xl w-full shadow-2xl border border-white/20 overflow-hidden"
-            >
-              {/* Header */}
-              <div className="bg-gradient-to-r from-cyan-500 to-indigo-500 px-8 py-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">
-                      Welcome to AYOS
-                    </h1>
-                    <p className="text-white/90 text-lg">
-                      The interactive operating system of {siteConfig.name}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleCloseGuide}
-                    className="text-white hover:bg-white/20 p-2 rounded-lg transition"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-8 space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">
-                    🎮 Getting Started
-                  </h2>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex gap-3">
-                      <span className="text-2xl">🖱️</span>
-                      <span>
-                        <strong>Desktop Icons:</strong> Click on icons to open
-                        applications and explore content
-                      </span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="text-2xl">💼</span>
-                      <span>
-                        <strong>My PC:</strong> Open to browse projects and
-                        work files
-                      </span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="text-2xl">📝</span>
-                      <span>
-                        <strong>Notepad AI:</strong> Write and get AI assistance
-                      </span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="text-2xl">⚙️</span>
-                      <span>
-                        <strong>Taskbar:</strong> Access pinned apps at the
-                        bottom
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">
-                    🌟 Features
-                  </h2>
-                  <ul className="space-y-2 text-gray-700">
-                    <li>✨ Interactive applications and games</li>
-                    <li>🎨 Real computer experience with modern UI</li>
-                    <li>🔍 Explore projects and portfolio content</li>
-                    <li>📧 Contact directly from the OS</li>
-                  </ul>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-blue-900 text-sm">
-                    💡 <strong>Tip:</strong> This is a fully interactive
-                    operating system. Click around, explore, and enjoy!
-                  </p>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="bg-gray-50 border-t border-gray-200 px-8 py-4 flex justify-between items-center">
-                <button
-                  onClick={handleCloseGuide}
-                  className="text-gray-600 hover:text-gray-900 transition font-medium"
-                >
-                  I'll Figure it Out
-                </button>
-                <Button
-                  onClick={handleCloseGuide}
-                  className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white"
-                >
-                  Let's Go! 🚀
-                </Button>
-              </div>
-            </motion.div>
+            <p className="text-white/50 text-sm font-medium mb-4">Scroll to Enter AYOS</p>
+            <div className="flex justify-center">
+              <ChevronDown
+                size={24}
+                className="text-cyan-400/50 animate-pulse"
+              />
+            </div>
           </motion.div>
+        </motion.div>
+        {/* Subtle dark overlay for readability while keeping matrix visible */}
+        <div className="absolute inset-0 bg-black/30" />
+      </section>
+      )}
+
+      {/* OS Mode Section - Lazy mounted when in view */}
+      <section ref={osSectionRef} id="os" className="w-full relative min-h-screen">
+        {osActive ? (
+          <Windows11OS
+            showWelcome={false}
+            onWelcomeClose={() => {}}
+            onExit={() => {
+              setOsActive(false);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        ) : (
+          osInView ? null : <div className="h-screen" />
         )}
-      </AnimatePresence>
+      </section>
     </div>
   );
 }
