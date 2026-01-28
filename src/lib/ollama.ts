@@ -16,47 +16,26 @@ export interface OllamaModel {
 
 // Available models to use with Ollama
 export const AVAILABLE_MODELS: Record<string, OllamaModel> = {
-  "qwen2.5": {
-    name: "qwen2.5",
+  "qwen2.5:7b": {
+    name: "qwen2.5:7b",
     display: "Qwen2.5 (Balanced)",
     context: 32768,
     speed: "balanced",
     size: "7B",
   },
-  "neural-chat": {
-    name: "neural-chat",
-    display: "Neural Chat (Fast)",
-    context: 4096,
-    speed: "fast",
-    size: "4B",
-  },
-  "mistral": {
-    name: "mistral",
-    display: "Mistral (Balanced)",
+  "llama3.2:3b": {
+    name: "llama3.2:3b",
+    display: "Llama 3.2 (Fast)",
     context: 8192,
-    speed: "balanced",
-    size: "7B",
-  },
-  "llama2": {
-    name: "llama2",
-    display: "Llama 2 (Powerful)",
-    context: 4096,
-    speed: "powerful",
-    size: "7B",
-  },
-  "orca-mini": {
-    name: "orca-mini",
-    display: "Orca Mini (Fast)",
-    context: 4096,
     speed: "fast",
     size: "3B",
   },
-  "openchat": {
-    name: "openchat",
-    display: "OpenChat (Balanced)",
-    context: 4096,
-    speed: "balanced",
-    size: "7B",
+  "llama3:latest": {
+    name: "llama3:latest",
+    display: "Llama 3 (Powerful)",
+    context: 8192,
+    speed: "powerful",
+    size: "8B",
   },
 };
 
@@ -88,13 +67,14 @@ export async function getAvailableModels(): Promise<string[]> {
       signal: AbortSignal.timeout(5000),
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) return ["qwen2.5:7b"];
 
     const data = await response.json() as { models?: Array<{ name: string }> };
-    return data.models?.map((m) => m.name.split(":")[0]) || [];
+    // Return full model names with tags
+    return data.models?.map((m) => m.name) || ["qwen2.5:7b"];
   } catch (error) {
     console.warn("Failed to get Ollama models:", error instanceof Error ? error.message : error);
-    return [];
+    return ["qwen2.5:7b"];
   }
 }
 
@@ -104,7 +84,7 @@ export async function getAvailableModels(): Promise<string[]> {
  */
 export async function* streamOllamaResponse(
   prompt: string,
-  model: string = "neural-chat",
+  model: string = "qwen2.5:7b",
   systemPrompt?: string
 ): AsyncGenerator<string, void, unknown> {
   try {
@@ -183,7 +163,7 @@ export async function* streamOllamaResponse(
  */
 export async function getOllamaResponse(
   prompt: string,
-  model: string = "neural-chat",
+  model: string = "qwen2.5:7b",
   systemPrompt?: string
 ): Promise<string> {
   let fullResponse = "";

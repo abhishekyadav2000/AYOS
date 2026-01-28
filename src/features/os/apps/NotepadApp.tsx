@@ -3,19 +3,18 @@
 import React from "react";
 import { Lightbulb, Copy, Trash2, Send, ChevronDown, Zap } from "lucide-react";
 import {
-  checkOllamaAvailability,
-  getAvailableModels,
-  streamOllamaResponse,
-  AVAILABLE_MODELS,
-} from "@/lib/ollama";
+  isGeminiAvailable,
+  streamGeminiResponse,
+  getGeminiResponse,
+  AVAILABLE_GEMINI_MODELS,
+} from "@/lib/gemini";
 
 export function NotepadApp() {
   const [text, setText] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
-  const [ollamaAvailable, setOllamaAvailable] = React.useState(false);
-  const [ollamaModels, setOllamaModels] = React.useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = React.useState("qwen2.5:7b");
+  const [aiAvailable, setAiAvailable] = React.useState(false);
+  const [selectedModel, setSelectedModel] = React.useState("gemini-2.0-flash");
   const [showModelDropdown, setShowModelDropdown] = React.useState(false);
   const [messages, setMessages] = React.useState<Array<{ type: "user" | "ai"; content: string }>>([
     { type: "ai", content: "Hi! I'm your AI writing assistant. Type something to get started." },
@@ -23,20 +22,19 @@ export function NotepadApp() {
   const [input, setInput] = React.useState("");
 
   React.useEffect(() => {
-    const initOllama = async () => {
-      const available = await checkOllamaAvailability();
-      setOllamaAvailable(available);
-
-      if (available) {
-        const models = await getAvailableModels();
-        setOllamaModels(models);
-        if (models.length > 0) {
-          setSelectedModel(models[0]);
-        }
-      }
-    };
-
-    initOllama();
+    const available = isGeminiAvailable();
+    setAiAvailable(available);
+    
+    if (!available) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          content:
+            "⚠️ Gemini API key not configured. Please set NEXT_PUBLIC_GEMINI_API_KEY in your .env.local file to enable AI features.",
+        },
+      ]);
+    }
   }, []);
 
   const handleAISuggestion = async () => {
@@ -46,37 +44,28 @@ export function NotepadApp() {
     }
     setLoading(true);
     try {
-      if (ollamaAvailable) {
-        const suggestionsChunks: string[] = [];
+      if (aiAvailable) {
         const systemPrompt =
           "You are a helpful writing assistant. Provide 2-3 specific, actionable suggestions to improve the writing below. Format each as bullet points starting with •.";
 
-        for await (const chunk of streamOllamaResponse(
+        const response = await getGeminiResponse(
           `Here's some writing I'd like help improving:\n\n${text}`,
           selectedModel,
           systemPrompt
-        )) {
-          suggestionsChunks.push(chunk);
-        }
+        );
 
-        const fullResponse = suggestionsChunks.join("");
         setSuggestions(
-          fullResponse
+          response
             .split("\n")
             .filter((s) => s.trim().startsWith("•"))
             .slice(0, 3)
         );
       } else {
-        const aiSuggestions = [
-          "Break into shorter, punchier sentences.",
-          "Add specific examples to support your point.",
-          "Consider a more conversational tone here.",
-        ];
-        setSuggestions(aiSuggestions.sort(() => Math.random() - 0.5).slice(0, 2));
+        setSuggestions(["Please configure Gemini API key to use AI features."]);
       }
     } catch (error) {
       setSuggestions([
-        `Error getting suggestions: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Error: ${error instanceof Error ? error.message : "Failed to get suggestions"}`,
       ]);
     } finally {
       setLoading(false);
@@ -92,27 +81,25 @@ export function NotepadApp() {
     setLoading(true);
 
     try {
-      if (ollamaAvailable) {
-        let fullResponse = "";
+      if (aiAvailable) {
         setMessages((prev) => [...prev, { type: "ai", content: "✨ Thinking..." }]);
 
-        for await (const chunk of streamOllamaResponse(
+        const response = await getGeminiResponse(
           userInput,
           selectedModel,
           "You are a helpful writing assistant. Provide clear, concise feedback or answers."
-        )) {
-          fullResponse += chunk;
-          setMessages((prev) => {
-            const updated = [...prev];
-            const last = updated[updated.length - 1];
-            if (last?.type === "ai") {
-              last.content = fullResponse;
-            }
-            return updated;
-          });
-        }
+        );
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last?.type === "ai") {
+            last.content = response;
+          }
+          return updated;
+        });
       } else {
-        throw new Error("Local LLM not available");
+        throw new Error("Gemini API not available");
       }
     } catch (error) {
       console.error('[NotepadApp] AI message error:', error);
@@ -121,7 +108,7 @@ export function NotepadApp() {
         ...prev.filter(m => m.content !== "✨ Thinking..."), // Remove thinking message
         {
           type: "ai",
-          content: `❌ Error: ${error instanceof Error ? error.message : "Failed to get response"}\n\nℹ️ Make sure Ollama is running:\n• Start Ollama: brew services start ollama\n• Pull a model: ollama pull qwen2.5`,
+          content: `❌ Error: ${error instanceof Error ? error.message : "Failed to get response"}\n\nℹ️ Please configure Gemini API:\n• Add NEXT_PUBLIC_GEMINI_API_KEY to .env.local\n• Get key from: https://ai.google.dev`,
         },
       ]);
     } finally {
@@ -139,7 +126,7 @@ export function NotepadApp() {
   };
 
   const getModelDisplay = (model: string): string => {
-    const meta = AVAILABLE_MODELS[model];
+    const meta = AVAILABLE_GEMINI_MODELS[model];
     return meta ? meta.display : model;
   };
 
@@ -148,14 +135,14 @@ export function NotepadApp() {
       <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <span>Notepad AI</span>
-          {ollamaAvailable ? (
+          {aiAvailable ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded text-xs text-green-300">
               <Zap size={10} />
-              Local LLM Ready
+              Gemini Ready
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-500/20 border border-red-500/30 rounded text-xs text-red-300">
-              Offline
+              Not Configured
             </span>
           )}
         </div>
@@ -164,14 +151,14 @@ export function NotepadApp() {
             <button
               onClick={() => setShowModelDropdown((v) => !v)}
               className="flex items-center gap-2 px-2 py-1 rounded bg-white/10 hover:bg-white/15 border border-white/10 text-white/80"
-              disabled={!ollamaAvailable || ollamaModels.length === 0}
+              disabled={!aiAvailable}
             >
               {getModelDisplay(selectedModel)}
               <ChevronDown size={12} />
             </button>
-            {showModelDropdown && ollamaModels.length > 0 ? (
+            {showModelDropdown && aiAvailable ? (
               <div className="absolute right-0 mt-1 bg-black/90 border border-white/15 rounded-lg shadow-xl z-50 min-w-40 overflow-hidden">
-                {ollamaModels.map((model) => (
+                {Object.keys(AVAILABLE_GEMINI_MODELS).map((model: string) => (
                   <button
                     key={model}
                     onClick={() => {
