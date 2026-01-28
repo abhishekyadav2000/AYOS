@@ -5,6 +5,7 @@ import { Rnd } from "react-rnd";
 import { Minus, Square, X, Monitor, Calculator, Trash2 } from "lucide-react";
 import { WindowInstance, useWindowStore } from "../state/useWindowStore";
 import { appRegistry } from "../apps/registry";
+import { AppInitProvider, type AppInitData } from "../context/AppInitContext";
 
 const TASKBAR_HEIGHT = 72;
 
@@ -61,7 +62,9 @@ export function WindowFrame({ instance, children }: WindowFrameProps) {
             </TitleButton>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden bg-black/70 p-4">{children}</div>
+        <div className="flex-1 overflow-hidden bg-black/70 p-4">
+          <AppInitProvider value={instance.initData || null}>{children}</AppInitProvider>
+        </div>
       </div>
     </Rnd>
   );

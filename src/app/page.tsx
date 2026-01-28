@@ -1,105 +1,131 @@
 "use client";
 
 import React from "react";
-import { motion, useInView } from "framer-motion";
 import { Windows11OS } from "@/features/os/Windows11OS";
+import { BootAnimation } from "@/features/os/BootAnimation";
 import { siteConfig } from "@/config/site";
 import { ChevronDown } from "lucide-react";
+import { useAYOSGlobal } from "@/features/os/state/useAYOSGlobal";
 
 export default function Home() {
-  const osSectionRef = React.useRef<HTMLDivElement | null>(null);
-  const osInView = useInView(osSectionRef, { once: true, amount: 0.3 });
-  const [osActive, setOsActive] = React.useState(false);
+  const { appMode, enterAYOS, exitAYOS } = useAYOSGlobal();
+  const osRef = React.useRef<HTMLDivElement | null>(null);
+  const [isBooting, setIsBooting] = React.useState(false);
 
-  React.useEffect(() => {
-    if (osInView) setOsActive(true);
-  }, [osInView]);
+  const startBoot = React.useCallback(() => {
+    if (appMode !== "MAIN_SCREEN" || isBooting) return;
+    setIsBooting(true);
+  }, [appMode, isBooting]);
 
-  // Add keyboard listener for Enter key to navigate to AYOS
+  const handleBootComplete = React.useCallback(() => {
+    setIsBooting(false);
+    enterAYOS();
+    setTimeout(() => {
+      osRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [enterAYOS]);
+
+  // Handle scroll to enter AYOS
   React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "Enter" || e.key === " ") && !osActive) {
-        setOsActive(true);
-        const osSection = osSectionRef.current;
-        if (osSection) {
-          osSection.scrollIntoView({ behavior: "smooth" });
+    const handleScroll = () => {
+      if (appMode === 'MAIN_SCREEN') {
+        // Scroll position when user scrolls down at all
+        if (window.scrollY > 100) {
+          startBoot();
         }
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [osActive]);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [appMode, startBoot]);
+
+  // Ensure body can scroll
+  React.useEffect(() => {
+    if (appMode === 'MAIN_SCREEN') {
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+    } else {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+  }, [appMode]);
+
+  // Handle Enter key to enter AYOS
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && appMode === 'MAIN_SCREEN') {
+        startBoot();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [appMode, startBoot]);
 
   return (
     <div className="w-full">
-      {/* Hero Section - Landing Page with Matrix Background */}
-      {!osActive && (
-      <section className="h-screen w-full flex items-center justify-center relative">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center space-y-8 max-w-4xl px-6 z-10"
-        >
-          {/* Hero Heading */}
-          <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              {siteConfig.name}
-            </span>
-          </h1>
+      {/* MAIN SCREEN - Landing Page */}
+      {appMode === 'MAIN_SCREEN' && (
+        <section className="h-screen w-full flex items-center justify-center relative">
+          <div className="text-center space-y-8 max-w-4xl px-6 z-10">
+            {/* Hero */}
+            <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                {siteConfig.name}
+              </span>
+            </h1>
 
-          {/* Hero Subheading */}
-          <p className="text-2xl md:text-3xl text-white/80 font-light">
-            We build micro businesses and AI‑powered products.
-          </p>
+            <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
+              Building micro-businesses and AI-powered products.
+            </p>
 
-          {/* Hero Description */}
-          <p className="text-lg md:text-xl text-white/60 max-w-3xl mx-auto leading-relaxed">
-            System engineer, architect, and designer — all in one. Crafting modern digital experiences with performance, security, and polish.
-          </p>
+            <p className="text-base text-gray-400 max-w-2xl mx-auto">
+              System engineer, architect, and designer — all in one. <br />
+              Crafting modern digital experiences with performance, security, and polish.
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="flex items-center justify-center gap-3 pt-4">
-            <a href="#os" className="px-5 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white/90 transition">Enter AYOS</a>
-            <a href="/projects" className="px-5 py-2 rounded-lg border border-white/15 bg-white/0 hover:bg-white/10 text-white/80 transition">Projects</a>
-            <a href="/contact" className="px-5 py-2 rounded-lg border border-white/15 bg-white/0 hover:bg-white/10 text-white/80 transition">Contact</a>
-          </div>
-
-          {/* Scroll Indicator */}
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="pt-12"
-          >
-            <p className="text-white/50 text-sm font-medium mb-4">Scroll to Enter AYOS</p>
-            <div className="flex justify-center">
-              <ChevronDown
-                size={24}
-                className="text-cyan-400/50 animate-pulse"
-              />
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+              <button
+                onClick={startBoot}
+                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all"
+              >
+                Enter AYOS
+              </button>
+              <a
+                href="/projects"
+                className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all"
+              >
+                Projects
+              </a>
+              <a
+                href="/contact"
+                className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all"
+              >
+                Contact
+              </a>
             </div>
-          </motion.div>
-        </motion.div>
-        {/* Subtle dark overlay for readability while keeping matrix visible */}
-        <div className="absolute inset-0 bg-black/30" />
-      </section>
+
+            {/* Scroll hint */}
+            <div className="pt-12 animate-bounce">
+              <ChevronDown className="mx-auto text-cyan-400" size={32} />
+              <p className="text-sm text-gray-500 mt-2">Scroll or press Enter to enter AYOS</p>
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* OS Mode Section - Lazy mounted when in view */}
-      <section ref={osSectionRef} id="os" className="w-full relative min-h-screen">
-        {osActive ? (
-          <Windows11OS
-            showWelcome={false}
-            onWelcomeClose={() => {}}
-            onExit={() => {
-              setOsActive(false);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          />
-        ) : (
-          osInView ? null : <div className="h-screen" />
-        )}
+      {isBooting && <BootAnimation onBootComplete={handleBootComplete} />}
+
+      {/* AYOS DESKTOP - OS Environment */}
+      <section ref={osRef} className="w-full">
+        {appMode === 'AYOS_DESKTOP' && <Windows11OS onPowerOff={exitAYOS} />}
       </section>
+
+      {/* Hidden scrollable content for main screen */}
+      {appMode === 'MAIN_SCREEN' && (
+        <div className="min-h-[200vh] bg-gradient-to-b from-black via-black to-black"></div>
+      )}
     </div>
   );
 }

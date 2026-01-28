@@ -1,16 +1,43 @@
 "use client";
 
 import React from "react";
-import { Lightbulb, Copy, Trash2, Send } from "lucide-react";
+import { Lightbulb, Copy, Trash2, Send, ChevronDown, Zap } from "lucide-react";
+import {
+  checkOllamaAvailability,
+  getAvailableModels,
+  streamOllamaResponse,
+  AVAILABLE_MODELS,
+} from "@/lib/ollama";
 
 export function NotepadApp() {
   const [text, setText] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [ollamaAvailable, setOllamaAvailable] = React.useState(false);
+  const [ollamaModels, setOllamaModels] = React.useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = React.useState("qwen2.5");
+  const [showModelDropdown, setShowModelDropdown] = React.useState(false);
   const [messages, setMessages] = React.useState<Array<{ type: "user" | "ai"; content: string }>>([
     { type: "ai", content: "Hi! I'm your AI writing assistant. Type something to get started." },
   ]);
   const [input, setInput] = React.useState("");
+
+  React.useEffect(() => {
+    const initOllama = async () => {
+      const available = await checkOllamaAvailability();
+      setOllamaAvailable(available);
+
+      if (available) {
+        const models = await getAvailableModels();
+        setOllamaModels(models);
+        if (models.length > 0) {
+          setSelectedModel(models[0]);
+        }
+      }
+    };
+
+    initOllama();
+  }, []);
 
   const handleAISuggestion = async () => {
     if (!text.trim()) {
@@ -18,15 +45,42 @@ export function NotepadApp() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const aiSuggestions = [
-        "Break into shorter, punchier sentences.",
-        "Add specific examples to support your point.",
-        "Consider a more conversational tone here.",
-      ];
-      setSuggestions(aiSuggestions.sort(() => Math.random() - 0.5).slice(0, 2));
+    try {
+      if (ollamaAvailable) {
+        const suggestionsChunks: string[] = [];
+        const systemPrompt =
+          "You are a helpful writing assistant. Provide 2-3 specific, actionable suggestions to improve the writing below. Format each as bullet points starting with •.";
+
+        for await (const chunk of streamOllamaResponse(
+          `Here's some writing I'd like help improving:\n\n${text}`,
+          selectedModel,
+          systemPrompt
+        )) {
+          suggestionsChunks.push(chunk);
+        }
+
+        const fullResponse = suggestionsChunks.join("");
+        setSuggestions(
+          fullResponse
+            .split("\n")
+            .filter((s) => s.trim().startsWith("•"))
+            .slice(0, 3)
+        );
+      } else {
+        const aiSuggestions = [
+          "Break into shorter, punchier sentences.",
+          "Add specific examples to support your point.",
+          "Consider a more conversational tone here.",
+        ];
+        setSuggestions(aiSuggestions.sort(() => Math.random() - 0.5).slice(0, 2));
+      }
+    } catch (error) {
+      setSuggestions([
+        `Error getting suggestions: ${error instanceof Error ? error.message : "Unknown error"}`,
+      ]);
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   const handleAIMessage = async () => {
@@ -38,22 +92,27 @@ export function NotepadApp() {
     setLoading(true);
 
     try {
-      // Try Ollama first (local LLM)
-      const response = await fetch("http://localhost:11434/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "llama2",
-          prompt: userInput,
-          stream: false,
-        }),
-      });
+      if (ollamaAvailable) {
+        let fullResponse = "";
+        setMessages((prev) => [...prev, { type: "ai", content: "✨ Thinking..." }]);
 
-      if (response.ok) {
-        const data = await response.json();
-        setMessages((prev) => [...prev, { type: "ai", content: data.response || "Response received" }]);
+        for await (const chunk of streamOllamaResponse(
+          userInput,
+          selectedModel,
+          "You are a helpful writing assistant. Provide clear, concise feedback or answers."
+        )) {
+          fullResponse += chunk;
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.type === "ai") {
+              last.content = fullResponse;
+            }
+            return updated;
+          });
+        }
       } else {
-        throw new Error("Ollama not available");
+        throw new Error("Local LLM not available");
       }
     } catch (error) {
       // Fallback to mock responses if Ollama is not running
@@ -62,7 +121,7 @@ export function NotepadApp() {
           "That's a great idea! You could expand with more details.",
           "Strong writing! Your voice comes through well.",
           "This flows nicely. Consider a transition sentence.",
-          "Note: Install Ollama (ollama.ai) and run 'ollama run llama2' for real AI responses.",
+          "Note: Start Ollama and pull a model (e.g., qwen2.5) for real AI responses.",
         ];
         const response = responses[Math.floor(Math.random() * responses.length)];
         setMessages((prev) => [...prev, { type: "ai", content: response }]);
@@ -83,11 +142,56 @@ export function NotepadApp() {
     setSuggestions([]);
   };
 
+  const getModelDisplay = (model: string): string => {
+    const meta = AVAILABLE_MODELS[model];
+    return meta ? meta.display : model;
+  };
+
   return (
     <div className="flex flex-col h-full text-white gap-3">
       <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-        <div className="font-semibold text-sm">Notepad AI</div>
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <span>Notepad AI</span>
+          {ollamaAvailable ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded text-xs text-green-300">
+              <Zap size={10} />
+              Local LLM Ready
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-500/20 border border-red-500/30 rounded text-xs text-red-300">
+              Offline
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2 text-xs">
+          <div className="relative">
+            <button
+              onClick={() => setShowModelDropdown((v) => !v)}
+              className="flex items-center gap-2 px-2 py-1 rounded bg-white/10 hover:bg-white/15 border border-white/10 text-white/80"
+              disabled={!ollamaAvailable || ollamaModels.length === 0}
+            >
+              {getModelDisplay(selectedModel)}
+              <ChevronDown size={12} />
+            </button>
+            {showModelDropdown && ollamaModels.length > 0 ? (
+              <div className="absolute right-0 mt-1 bg-black/90 border border-white/15 rounded-lg shadow-xl z-50 min-w-40 overflow-hidden">
+                {ollamaModels.map((model) => (
+                  <button
+                    key={model}
+                    onClick={() => {
+                      setSelectedModel(model);
+                      setShowModelDropdown(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 transition ${
+                      selectedModel === model ? "bg-cyan-500/20 text-cyan-200" : "text-white/80"
+                    }`}
+                  >
+                    {getModelDisplay(model)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <button
             onClick={handleAISuggestion}
             disabled={!text.trim() || loading}
@@ -112,7 +216,7 @@ export function NotepadApp() {
             <Trash2 size={12} />
             Clear
           </button>
-          <span className="text-white/40">{text.length} chars</span>
+          <span className="text-white/40">{text.length} chars • {getModelDisplay(selectedModel)}</span>
         </div>
       </div>
 

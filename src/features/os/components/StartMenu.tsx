@@ -24,7 +24,7 @@ export const StartMenu = React.forwardRef<HTMLDivElement, StartMenuProps>(
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 10 }}
         transition={{ duration: 0.14, ease: "easeOut" }}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[720px] max-w-[92vw] rounded-3xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-2xl"
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[720px] max-w-[92vw] rounded-3xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-2xl z-[200] pointer-events-auto"
       >
         <div className="flex items-center justify-between px-6 py-4 text-sm font-semibold text-white/90">
           <span className="tracking-tight">Pinned</span>

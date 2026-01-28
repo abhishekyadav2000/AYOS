@@ -1,11 +1,20 @@
-import type { Metadata } from "next";
-import { Windows11OS } from "@/features/os/Windows11OS";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Welcome to Abhishek OS",
-  description: "Windows 11-style desktop environment for Abhishek Yadav. Explore projects, resume, and connect.",
-};
+import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import { Windows11OS } from "@/features/os/Windows11OS";
+import { BootAnimation } from "@/features/os/BootAnimation";
 
 export default function AYOSPage() {
-  return <Windows11OS />;
+  const [bootComplete, setBootComplete] = useState(false);
+
+  return (
+    <AnimatePresence mode="wait">
+      {!bootComplete ? (
+        <BootAnimation key="boot" onBootComplete={() => setBootComplete(true)} />
+      ) : (
+        <Windows11OS key="os" showWelcome={true} />
+      )}
+    </AnimatePresence>
+  );
 }

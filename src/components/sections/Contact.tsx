@@ -28,7 +28,7 @@ export function Contact() {
               <Mail className="text-cyan-400 mx-auto mb-4" size={32} />
               <h3 className="font-bold mb-2">Email</h3>
               <a
-                href="mailto:abhishekyadav@my.unt.edu"
+                href="mailto:abhishekyadav@my.unt.edu?subject=Let's Work Together&body=Hi Abhishek,%0D%0A%0D%0AI'm reaching out regarding..."
                 className="text-gray-400 hover:text-cyan-400 transition-colors"
               >
                 abhishekyadav@my.unt.edu

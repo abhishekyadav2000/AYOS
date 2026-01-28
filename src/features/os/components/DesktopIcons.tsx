@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings, User } from "lucide-react";
+import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings, User, GripVertical } from "lucide-react";
 import { DesktopIcon } from "@/config/os";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useWindowStore } from "../state/useWindowStore";
 import { appRegistry, AppId } from "../apps/registry";
 
@@ -27,38 +27,59 @@ type DesktopIconsProps = {
 
 export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
   const [toast, setToast] = React.useState<string | null>(null);
+  const [iconPositions, setIconPositions] = React.useState<Record<string, { x: number; y: number }>>({});
   const openWindow = useWindowStore((s) => s.openWindow);
   const focusWindow = useWindowStore((s) => s.focusWindow);
+  
   React.useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2200);
     return () => clearTimeout(t);
   }, [toast]);
 
+  // Load positions from localStorage
+  React.useEffect(() => {
+    const saved = localStorage.getItem('ayos-desktop-icon-positions');
+    if (saved) {
+      try {
+        setIconPositions(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load icon positions', e);
+      }
+    }
+  }, []);
+
+  const handleDragEnd = (iconId: string, info: PanInfo) => {
+    const newPositions = {
+      ...iconPositions,
+      [iconId]: {
+        x: (iconPositions[iconId]?.x || 0) + info.offset.x,
+        y: (iconPositions[iconId]?.y || 0) + info.offset.y,
+      },
+    };
+    setIconPositions(newPositions);
+    localStorage.setItem('ayos-desktop-icon-positions', JSON.stringify(newPositions));
+  };
+
   const handleDoubleClick = (label: string, id: string) => {
     console.log('Desktop icon double-clicked:', { label, id });
     setToast(`${label} opening...`);
-    const mapping: Record<string, AppId> = {
-      "this-pc": "my-computer",
-      "recycle-bin": "recycle-bin",
-      calculator: "calculator",
-      "notepad-ai": "notepad",
-      paint: "paint",
-      settings: "settings",
-      about: "about",
-      projects: "my-computer", // Open My Computer to Desktop/Projects
-      socials: "my-computer", // Open My Computer to Desktop/Social Media
+    const mapping: Record<string, { appId: AppId; folderId?: string }> = {
+      "this-pc": { appId: "my-computer" },
+      "recycle-bin": { appId: "recycle-bin" },
+      calculator: { appId: "calculator" },
+      "notepad-ai": { appId: "notepad" },
+      paint: { appId: "paint" },
+      settings: { appId: "settings" },
+      about: { appId: "about" },
+      projects: { appId: "my-computer", folderId: "projects" },
+      socials: { appId: "my-computer", folderId: "social" },
     };
-    const appId = mapping[id];
-    console.log('Mapped appId:', appId);
-    if (appId && appRegistry[appId]) {
-      console.log('Opening window for:', appId);
-      const newId = openWindow(appId);
-      console.log('Window ID:', newId);
+    const config = mapping[id];
+    if (config && appRegistry[config.appId]) {
+      console.log('Opening window for:', config.appId, 'with folder:', config.folderId);
+      const newId = openWindow(config.appId, config.folderId ? { folderId: config.folderId } : undefined);
       focusWindow(newId);
-      
-      // TODO: Navigate to specific folder for projects/socials
-      // This would require passing initial path to MyComputerApp
     } else {
       console.log('No app found, calling onOpen');
       onOpen(label, id);
@@ -66,21 +87,40 @@ export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
   };
 
   return (
-    <div className="fixed top-8 left-8 flex flex-col gap-6 select-none">
-      {icons.map((icon) => {
+    <>
+      {icons.map((icon, index) => {
         const Icon = iconLookup[icon.id] ?? Monitor;
+        const position = iconPositions[icon.id] || { x: 0, y: 0 };
+        const baseY = 32 + index * 100; // Top padding + spacing
+        
         return (
-          <button
+          <motion.div
             key={icon.id}
-            className="flex flex-col items-center gap-2 text-sm text-white/90 hover:text-white"
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            onDragEnd={(_, info) => handleDragEnd(icon.id, info)}
+            style={{
+              position: 'fixed',
+              left: 32,
+              top: baseY,
+              x: position.x,
+              y: position.y,
+              zIndex: 40,
+            }}
+            className="flex flex-col items-center gap-2 text-sm text-white/90 hover:text-white cursor-move select-none"
             onDoubleClick={() => handleDoubleClick(icon.label, icon.id)}
-            aria-label={icon.label}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <div className="h-14 w-14 rounded-xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-white/15 transition">
+            <div className="h-14 w-14 rounded-xl bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-lg hover:bg-white/15 transition relative group">
               <Icon size={28} className="drop-shadow" />
+              <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical size={12} className="text-white/40" />
+              </div>
             </div>
-            <span className="text-xs leading-tight text-center px-2">{icon.label}</span>
-          </button>
+            <span className="text-xs leading-tight text-center px-2 max-w-[80px] break-words">{icon.label}</span>
+          </motion.div>
         );
       })}
 
@@ -96,6 +136,6 @@ export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

@@ -58,16 +58,24 @@ export function MatrixBackground() {
       drops[i] = Math.random() * -100;
     }
 
-    // Rainbow color palette with cycling colors
+    // Extended rainbow color palette with more variety
     const colors = [
       "rgba(255, 0, 0, 1)",       // Red
-      "rgba(255, 127, 0, 1)",     // Orange
+      "rgba(255, 127, 0, 1)",     // Orange  
+      "rgba(255, 200, 0, 1)",     // Gold
       "rgba(255, 255, 0, 1)",     // Yellow
+      "rgba(127, 255, 0, 1)",     // Lime
       "rgba(0, 255, 0, 1)",       // Green
+      "rgba(0, 255, 127, 1)",     // Spring Green
+      "rgba(0, 255, 255, 1)",     // Cyan
+      "rgba(0, 127, 255, 1)",     // Sky Blue
       "rgba(0, 0, 255, 1)",       // Blue
       "rgba(75, 0, 130, 1)",      // Indigo
       "rgba(148, 0, 211, 1)",     // Violet
+      "rgba(255, 0, 255, 1)",     // Magenta
       "rgba(255, 0, 127, 1)",     // Pink
+      "rgba(255, 20, 147, 1)",    // Deep Pink
+      "rgba(255, 105, 180, 1)",   // Hot Pink
     ];
 
     let colorIndex = 0;
@@ -149,13 +157,13 @@ export function MatrixBackground() {
         
         ctx.fillText(text, x, y);
 
-        // Reset drops randomly or when off screen
-        if (y > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+        // Reset drops to maintain continuous effect
+        if (y > canvas.height) {
+          drops[i] = Math.random() * -50; // Reset with random offset
+        } else {
+          // Move drop down
+          drops[i]++;
         }
-
-        // Move drop down
-        drops[i]++;
       }
 
       // Cycle through colors for animation effect

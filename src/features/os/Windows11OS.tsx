@@ -13,11 +13,10 @@ import { ThemeProvider } from "./ThemeContext";
 interface Windows11OSProps {
   showWelcome?: boolean;
   onWelcomeClose?: () => void;
-  onExit?: () => void; // exit back to hero
+  onPowerOff?: () => void;
 }
 
-export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Windows11OSProps) {
-  const router = useRouter();
+export function Windows11OS({ showWelcome = false, onWelcomeClose, onPowerOff }: Windows11OSProps) {
   const [notification, setNotification] = React.useState<string | null>(null);
   const [displayWelcome, setDisplayWelcome] = React.useState(showWelcome);
 
@@ -34,11 +33,10 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onExit }: Win
   const handleAppOpen = (label: string) => {
     // Special handling for power option from Start Menu
     if (label === "Power") {
-      setNotification("Exiting AYOS...");
+      setNotification("Powering off AYOS...");
       setTimeout(() => {
-        router.push("/");
+        onPowerOff?.();
       }, 1000);
-      onExit?.();
       return;
     }
     setNotification(`${label} launched`);

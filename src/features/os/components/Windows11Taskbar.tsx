@@ -116,9 +116,9 @@ export function Windows11Taskbar({
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
         className={clsx(
-          "fixed bottom-0 left-0 right-0 z-40",
-          "px-6 py-2 h-14",
-          "bg-black/40 border-t border-white/10 backdrop-blur-3xl shadow-2xl",
+          "fixed bottom-0 left-0 right-0 z-[150]",
+          "px-6 py-2 h-12",
+          "bg-black/5 border-t border-white/5 backdrop-blur-xl shadow-2xl",
           "flex items-center justify-center gap-2",
         )}
       >

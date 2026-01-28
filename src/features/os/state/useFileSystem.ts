@@ -49,40 +49,72 @@ const seedNodes = (): FSNode[] => {
   const timestamp = now();
   return [
     { id: "root", name: "This PC", type: "root", parentId: null, createdAt: timestamp, updatedAt: timestamp },
-    // Folders section
+    
+    // Main Folders (4 Core) - At Root Level
+    { id: "projects", name: "📁 Projects", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
+    { id: "blog", name: "📖 Blog & Stories", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
+    { id: "social", name: "📱 Social Media", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
+    { id: "store", name: "🛍️ Store", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
+    
+    // System Folders
     { id: "docs", name: "Documents", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
     { id: "downloads", name: "Downloads", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
-    { id: "desktop", name: "Desktop", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
     { id: "pictures", name: "Pictures", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
-    { id: "music", name: "Music", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
-    { id: "videos", name: "Videos", type: "folder", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "folder" } },
+    
     // Drives
     { id: "drive-c", name: "Local Disk (C:)", type: "drive", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "drive" } },
     { id: "drive-d", name: "Data (D:)", type: "drive", parentId: "root", createdAt: timestamp, updatedAt: timestamp, meta: { group: "drive" } },
+    
     // C drive contents
     { id: "program-files", name: "Program Files", type: "folder", parentId: "drive-c", createdAt: timestamp, updatedAt: timestamp },
     { id: "users", name: "Users", type: "folder", parentId: "drive-c", createdAt: timestamp, updatedAt: timestamp },
+    
     // D drive contents
-    { id: "projects", name: "Projects", type: "folder", parentId: "drive-d", createdAt: timestamp, updatedAt: timestamp },
-    { id: "media", name: "Media", type: "folder", parentId: "drive-d", createdAt: timestamp, updatedAt: timestamp },
+    { id: "archived", name: "Archived", type: "folder", parentId: "drive-d", createdAt: timestamp, updatedAt: timestamp },
+    { id: "backups", name: "Backups", type: "folder", parentId: "drive-d", createdAt: timestamp, updatedAt: timestamp },
+    
     // Documents content
     { id: "resume-pdf", name: "Resume.pdf", type: "file", fileType: "pdf", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     { id: "resume-docx", name: "Resume.docx", type: "file", fileType: "docx", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     { id: "portfolio", name: "Portfolio.txt", type: "file", fileType: "txt", content: "Abhishek Yadav | Full Stack Developer\nSkills: React, Next.js, TypeScript, Node.js, Python\nPortfolio: Building innovative web applications", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
+    
     // Downloads content
     { id: "setup-exe", name: "Setup.exe", type: "file", fileType: "exe", parentId: "downloads", createdAt: timestamp, updatedAt: timestamp },
-    // Desktop folders
-    { id: "desktop-projects", name: "Projects", type: "folder", parentId: "desktop", createdAt: timestamp, updatedAt: timestamp },
-    { id: "desktop-socials", name: "Social Media", type: "folder", parentId: "desktop", createdAt: timestamp, updatedAt: timestamp },
-    // Projects folder content
-    { id: "proj-ayos", name: "AYOS (This Site).link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000/AYOS", parentId: "desktop-projects", createdAt: timestamp, updatedAt: timestamp },
-    { id: "proj-github", name: "All Projects - GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "desktop-projects", createdAt: timestamp, updatedAt: timestamp },
+    
+    // ========== PROJECTS FOLDER STRUCTURE ==========
+    // Projects folder content - Portfolio work
+    { id: "proj-ayos", name: "AYOS - Interactive OS Portfolio.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000/AYOS", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-ecommerce", name: "E-Commerce Platform.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-dashboard", name: "Analytics Dashboard.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-ai-chatbot", name: "AI Chatbot Assistant.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-portfolio", name: "Portfolio Template.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    { id: "proj-github-all", name: "View All Projects on GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "projects", createdAt: timestamp, updatedAt: timestamp },
+    
+    // ========== BLOG FOLDER STRUCTURE ==========
+    // Blog folder subfolders
+    { id: "blog-published", name: "Published", type: "folder", parentId: "blog", createdAt: timestamp, updatedAt: timestamp },
+    { id: "blog-drafts", name: "Drafts", type: "folder", parentId: "blog", createdAt: timestamp, updatedAt: timestamp },
+    { id: "blog-readme", name: "📖 All Field Notes.txt", type: "file", fileType: "txt", content: "Field Notes & Personal Stories\n\n1. Building an Interactive Web OS\n2. Local-First AI: Running Models in the Browser\n3. Building Products with Intuition\n\nRead these in the Field Notes app!", parentId: "blog", createdAt: timestamp, updatedAt: timestamp },
+    
+    // ========== SOCIAL MEDIA FOLDER STRUCTURE ==========
     // Social Media folder content
-    { id: "social-linkedin", name: "LinkedIn.link", type: "file", fileType: "link", content: "https://www.linkedin.com/in/itsmebro", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
-    { id: "social-github", name: "GitHub.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
-    { id: "social-youtube", name: "YouTube.link", type: "file", fileType: "link", content: "https://youtube.com/@abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
-    { id: "social-x", name: "X (Twitter).link", type: "file", fileType: "link", content: "https://x.com/abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
-    { id: "social-instagram", name: "Instagram.link", type: "file", fileType: "link", content: "https://instagram.com/abhishekyadav", parentId: "desktop-socials", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-linkedin", name: "LinkedIn Profile.link", type: "file", fileType: "link", content: "https://www.linkedin.com/in/itsmebro", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-github", name: "GitHub Profile.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-youtube", name: "YouTube Channel.link", type: "file", fileType: "link", content: "https://youtube.com/@abhishekyadav", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-x", name: "X (Twitter).link", type: "file", fileType: "link", content: "https://x.com/abhishekyadav", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-instagram", name: "Instagram.link", type: "file", fileType: "link", content: "https://instagram.com/abhishekyadav", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-canva", name: "Canva - Design Tool.link", type: "file", fileType: "link", content: "https://canva.com", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-buffer", name: "Buffer - Social Scheduling.link", type: "file", fileType: "link", content: "https://buffer.com", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-analytics", name: "Analytics Dashboard.link", type: "file", fileType: "link", content: "https://analytics.google.com", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    { id: "social-hootsuite", name: "Hootsuite - Social Manager.link", type: "file", fileType: "link", content: "https://hootsuite.com", parentId: "social", createdAt: timestamp, updatedAt: timestamp },
+    
+    // ========== STORE FOLDER STRUCTURE ==========
+    // Store folder content - Marketplace items
+    { id: "store-services", name: "💼 My Services.txt", type: "file", fileType: "txt", content: "Professional Services:\n\n1. Full Stack Development\n2. UI/UX Design\n3. API Development\n4. System Architecture\n5. Technical Consulting\n\nContact: abhishekyadav@my.unt.edu", parentId: "store", createdAt: timestamp, updatedAt: timestamp },
+    { id: "store-templates", name: "🎨 Portfolio Templates.link", type: "file", fileType: "link", content: "https://github.com/abhishekyadav2000", parentId: "store", createdAt: timestamp, updatedAt: timestamp },
+    { id: "store-consulting", name: "💡 Tech Consulting.txt", type: "file", fileType: "txt", content: "Offering technical consulting for:\n- Web Development\n- System Design\n- Performance Optimization\n- Cloud Architecture\n\nHourly/Project rates available", parentId: "store", createdAt: timestamp, updatedAt: timestamp },
+    { id: "store-courses", name: "📚 Online Courses (Coming Soon).txt", type: "file", fileType: "txt", content: "Upcoming courses:\n- Modern Web Development\n- React & Next.js Mastery\n- System Design Fundamentals\n\nStay tuned!", parentId: "store", createdAt: timestamp, updatedAt: timestamp },
+    { id: "store-gigs", name: "⚡ Freelance Gigs.link", type: "file", fileType: "link", content: "https://www.fiverr.com", parentId: "store", createdAt: timestamp, updatedAt: timestamp },
   ];
 };
 

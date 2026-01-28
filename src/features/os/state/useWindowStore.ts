@@ -19,12 +19,13 @@ export type WindowInstance = {
   size: { w: number; h: number };
   restorePosition?: { x: number; y: number };
   restoreSize?: { w: number; h: number };
+  initData?: { folderId?: string; filePath?: string; [key: string]: string | undefined };
 };
 
 export type WindowStore = {
   windows: WindowInstance[];
   nextZ: number;
-  openWindow: (appId: AppId) => string;
+  openWindow: (appId: AppId, initData?: { folderId?: string; filePath?: string }) => string;
   closeWindow: (id: string) => void;
   focusWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -56,12 +57,12 @@ const clampRect = (pos: { x: number; y: number }, size: { w: number; h: number }
 export const useWindowStore = create<WindowStore>((set, get) => ({
   windows: [],
   nextZ: 10,
-  openWindow: (appId) => {
+  openWindow: (appId, initData) => {
     const existing = get().windows.find((w) => w.appId === appId);
     if (existing) {
       set((state) => ({
         windows: state.windows.map((w) =>
-          w.id === existing.id ? { ...w, isMinimized: false, zIndex: state.nextZ + 1 } : w
+          w.id === existing.id ? { ...w, isMinimized: false, zIndex: state.nextZ + 1, initData } : w
         ),
         nextZ: state.nextZ + 2,
       }));
@@ -91,6 +92,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
           zIndex: state.nextZ,
           position,
           size,
+          initData,
         },
       ],
       nextZ: state.nextZ + 1,

@@ -3,6 +3,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight, Folder, HardDrive, RefreshCw, Search, Home, FileText, File, FileArchive, FileCode, Link } from "lucide-react";
 import { useFileSystemStore, FSNode, FileKind } from "../../state/useFileSystem";
+import { useAppInit } from "../../context/AppInitContext";
 
 const BREADCRUMB_ROOT = { id: "root", label: "This PC" };
 
@@ -72,7 +73,10 @@ const isSelectable = (node: FSNode) => node.type !== "root";
 
 export function MyComputerApp() {
   const fs = useFileSystemStore();
-  const [currentId, setCurrentId] = React.useState("root");
+  const initData = useAppInit();
+  
+  // Use initial folder ID if provided, otherwise use root
+  const [currentId, setCurrentId] = React.useState(initData?.folderId || "root");
   const [history, setHistory] = React.useState<ExplorerHistory>({ stack: ["root"], pointer: 0 });
   const [selection, setSelection] = React.useState<Selection>({ id: null });
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; show: boolean }>({ x: 0, y: 0, show: false });
@@ -129,8 +133,19 @@ export function MyComputerApp() {
       navigateTo(node.id);
     } else if (node.type === "file") {
       if (node.fileType === "link" && node.content) {
+        // .link files open in new browser tab
         window.open(node.content, "_blank");
+      } else if (node.fileType === "txt") {
+        // .txt files open in Notepad AI
+        setEditorNode(node);
+      } else if (node.fileType === "pdf") {
+        // .pdf files open in PDF Viewer (placeholder for now)
+        setEditorNode(node);
+      } else if (node.fileType === "docx") {
+        // .docx files open in DOCX Viewer (placeholder for now)
+        setEditorNode(node);
       } else {
+        // Default to showing in editor
         setEditorNode(node);
       }
     }
