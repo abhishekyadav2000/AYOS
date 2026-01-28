@@ -9,6 +9,7 @@ import { DesktopIcons } from "./components/DesktopIcons";
 import { WindowLayer } from "./components/WindowLayer";
 import { Windows11Taskbar } from "./components/Windows11Taskbar";
 import { ThemeProvider } from "./ThemeContext";
+import { CyberpunkCityBackground } from "@/components/CyberpunkCityBackground";
 
 interface Windows11OSProps {
   showWelcome?: boolean;
@@ -54,6 +55,8 @@ export function Windows11OS({ showWelcome = false, onWelcomeClose, onPowerOff }:
   return (
     <ThemeProvider>
       <div className="h-screen w-screen overflow-hidden bg-transparent relative flex flex-col">
+        {/* Cyberpunk City Background */}
+        <CyberpunkCityBackground />
 
         {/* OS Content Container */}
         <div className="flex-1 flex flex-col relative">
