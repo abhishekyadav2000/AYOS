@@ -74,8 +74,8 @@ const seedNodes = (): FSNode[] => {
     { id: "backups", name: "Backups", type: "folder", parentId: "drive-d", createdAt: timestamp, updatedAt: timestamp },
     
     // Documents content
-    { id: "resume-pdf", name: "Resume.pdf", type: "file", fileType: "pdf", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
-    { id: "resume-docx", name: "Resume.docx", type: "file", fileType: "docx", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
+    { id: "resume-pdf", name: "Resume.pdf", type: "file", fileType: "pdf", content: "Download from: /resume.pdf", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
+    { id: "resume-docx", name: "Resume.docx", type: "file", fileType: "docx", content: "Download from: /resume.docx", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     { id: "portfolio", name: "Portfolio.txt", type: "file", fileType: "txt", content: "Abhishek Yadav | Full Stack Developer\nSkills: React, Next.js, TypeScript, Node.js, Python\nPortfolio: Building innovative web applications", parentId: "docs", createdAt: timestamp, updatedAt: timestamp },
     
     // Downloads content

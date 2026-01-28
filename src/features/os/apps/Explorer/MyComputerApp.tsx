@@ -135,14 +135,25 @@ export function MyComputerApp() {
       if (node.fileType === "link" && node.content) {
         // .link files open in new browser tab
         window.open(node.content, "_blank");
+      } else if (node.fileType === "pdf") {
+        // .pdf files open in new tab or download
+        if (node.name === "Resume.pdf") {
+          window.open("/resume.pdf", "_blank");
+        } else {
+          setEditorNode(node);
+        }
+      } else if (node.fileType === "docx") {
+        // .docx files download
+        if (node.name === "Resume.docx") {
+          const link = document.createElement("a");
+          link.href = "/resume.docx";
+          link.download = "Resume.docx";
+          link.click();
+        } else {
+          setEditorNode(node);
+        }
       } else if (node.fileType === "txt") {
         // .txt files open in Notepad AI
-        setEditorNode(node);
-      } else if (node.fileType === "pdf") {
-        // .pdf files open in PDF Viewer (placeholder for now)
-        setEditorNode(node);
-      } else if (node.fileType === "docx") {
-        // .docx files open in DOCX Viewer (placeholder for now)
         setEditorNode(node);
       } else {
         // Default to showing in editor
