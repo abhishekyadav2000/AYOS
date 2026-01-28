@@ -16,6 +16,13 @@ export interface OllamaModel {
 
 // Available models to use with Ollama
 export const AVAILABLE_MODELS: Record<string, OllamaModel> = {
+  "qwen2.5": {
+    name: "qwen2.5",
+    display: "Qwen2.5 (Balanced)",
+    context: 32768,
+    speed: "balanced",
+    size: "7B",
+  },
   "neural-chat": {
     name: "neural-chat",
     display: "Neural Chat (Fast)",

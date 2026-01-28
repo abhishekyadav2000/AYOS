@@ -274,29 +274,6 @@ export function NotepadAIWindow({ onClose }: NotepadAIWindowProps) {
         </div>
       )}
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.85, x: 80, y: -80 }}
-      animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-      exit={{ opacity: 0, scale: 0.85, x: 80, y: -80 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="fixed bottom-20 right-12 z-40 w-full max-w-3xl bg-gradient-to-br from-white/8 via-white/5 to-white/3 border border-white/15 backdrop-blur-2xl rounded-xl overflow-hidden shadow-2xl"
-      style={{ maxHeight: "70vh" }}
-    >
-      {/* Title Bar */}
-      <div className="bg-gradient-to-r from-white/10 to-white/5 border-b border-white/10 px-5 py-3 flex items-center justify-between group hover:bg-gradient-to-r hover:from-white/15 hover:to-white/8 transition-colors">
-        <div className="flex items-center gap-3 text-white font-medium">
-          <span className="text-lg">✎</span>
-          <span>Notepad AI</span>
-        </div>
-        <button
-          onClick={onClose}
-          className="hover:bg-white/20 p-1.5 rounded transition text-white/70 hover:text-white"
-        >
-          <X size={18} />
-        </button>
-      </div>
-
       {/* Main Content */}
       <div className="flex flex-col h-full" style={{ maxHeight: "calc(70vh - 54px)" }}>
         {/* Text Editor */}
@@ -361,6 +338,7 @@ export function NotepadAIWindow({ onClose }: NotepadAIWindowProps) {
               </motion.div>
             )}
             <div ref={messagesEndRef} />
+          </div>
 
           {/* Chat Input */}
           <div className="border-t border-white/10 p-3 flex gap-2 bg-white/3 backdrop-blur-sm">

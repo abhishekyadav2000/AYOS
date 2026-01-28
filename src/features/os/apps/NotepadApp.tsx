@@ -115,22 +115,18 @@ export function NotepadApp() {
         throw new Error("Local LLM not available");
       }
     } catch (error) {
-      // Fallback to mock responses if Ollama is not running
-      setTimeout(() => {
-        const responses = [
-          "That's a great idea! You could expand with more details.",
-          "Strong writing! Your voice comes through well.",
-          "This flows nicely. Consider a transition sentence.",
-          "Note: Start Ollama and pull a model (e.g., qwen2.5) for real AI responses.",
-        ];
-        const response = responses[Math.floor(Math.random() * responses.length)];
-        setMessages((prev) => [...prev, { type: "ai", content: response }]);
-        setLoading(false);
-      }, 500);
-      return;
+      console.error('[NotepadApp] AI message error:', error);
+      // Show error message to user
+      setMessages((prev) => [
+        ...prev.filter(m => m.content !== "✨ Thinking..."), // Remove thinking message
+        {
+          type: "ai",
+          content: `❌ Error: ${error instanceof Error ? error.message : "Failed to get response"}\n\nℹ️ Make sure Ollama is running:\n• Start Ollama: brew services start ollama\n• Pull a model: ollama pull qwen2.5`,
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleCopyText = () => {
