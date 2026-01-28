@@ -49,8 +49,6 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/ci
-          generateSarif: true
-          uploadSarif: true
           # Fail on findings of medium or higher severity
           # Semgrep action fails by default on rule matches; keep default behavior
           # Customize threshold via custom config if needed in future

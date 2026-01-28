@@ -15,7 +15,7 @@ export function NotepadApp() {
   const [loading, setLoading] = React.useState(false);
   const [ollamaAvailable, setOllamaAvailable] = React.useState(false);
   const [ollamaModels, setOllamaModels] = React.useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = React.useState("qwen2.5");
+  const [selectedModel, setSelectedModel] = React.useState("qwen2.5:7b");
   const [showModelDropdown, setShowModelDropdown] = React.useState(false);
   const [messages, setMessages] = React.useState<Array<{ type: "user" | "ai"; content: string }>>([
     { type: "ai", content: "Hi! I'm your AI writing assistant. Type something to get started." },
