@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, ChevronRight, Folder, HardDrive, RefreshCw, Search, Home, FileText, File, FileArchive, FileCode, Link } from "lucide-react";
+import { ChevronLeft, ChevronRight, Folder, HardDrive, RefreshCw, Search, Home, FileText, File, FileArchive, FileCode, Link, Upload } from "lucide-react";
 import { useFileSystemStore, FSNode, FileKind } from "../../state/useFileSystem";
 import { useAppInit } from "../../context/AppInitContext";
 
@@ -83,6 +83,9 @@ export function MyComputerApp() {
   const [renameValue, setRenameValue] = React.useState<string>("");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [editorNode, setEditorNode] = React.useState<FSNode | null>(null);
+  const [uploading, setUploading] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState<string>("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const nodes = fs.nodes;
@@ -203,6 +206,64 @@ export function MyComputerApp() {
 
   const statusText = `${children.length} item${children.length === 1 ? "" : "s"}`;
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.currentTarget.files;
+    if (!files) return;
+
+    setUploading(true);
+    setUploadProgress("Uploading...");
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", currentId === "docs" ? "documents" : "uploads");
+
+        setUploadProgress(`Uploading ${i + 1}/${files.length}: ${file.name}`);
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Upload failed");
+        }
+
+        const result = await response.json();
+
+        // Add file to file system
+        fs.createDocument(
+          currentId,
+          result.originalName,
+          result.originalName.split(".").pop() as FileKind || "file",
+          result.url
+        );
+      }
+
+      setUploadProgress("Upload complete!");
+      setTimeout(() => {
+        setUploadProgress("");
+        setUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }, 1500);
+    } catch (error) {
+      setUploadProgress(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      setTimeout(() => {
+        setUploadProgress("");
+        setUploading(false);
+      }, 2000);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full text-white" onContextMenu={onContext} ref={containerRef}>
       {/* Toolbar */}
@@ -211,6 +272,9 @@ export function MyComputerApp() {
         <ToolbarButton icon={ChevronRight} label="Forward" onClick={goForward} disabled={history.pointer >= history.stack.length - 1} />
         <ToolbarButton icon={Home} label="Up" onClick={openParent} disabled={currentId === "root"} />
         <ToolbarButton icon={RefreshCw} label="Refresh" onClick={() => setSearchQuery("")} />
+        {(currentId === "docs" || currentId === "downloads") && (
+          <ToolbarButton icon={Upload} label="Upload" onClick={handleUploadClick} />
+        )}
 
         <div className="flex-1 flex items-center gap-2 ml-2">
           {/* Breadcrumb */}
@@ -280,7 +344,20 @@ export function MyComputerApp() {
       </div>
 
       {/* Status Bar */}
-      <div className="h-9 border-t border-white/10 bg-white/5 px-3 flex items-center text-xs text-white/70">{statusText}</div>
+      <div className="h-9 border-t border-white/10 bg-white/5 px-3 flex items-center justify-between text-xs text-white/70">
+        <span>{uploadProgress || statusText}</span>
+        {uploading && <div className="w-32 h-1 bg-white/10 rounded overflow-hidden"><div className="h-full bg-cyan-500 w-1/3 animate-pulse"></div></div>}
+      </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        onChange={handleFileSelect}
+        accept=".pdf,.docx,.txt,.doc,.pptx,.xlsx"
+        className="hidden"
+      />
 
       {/* Context Menu */}
       {contextMenu.show ? (
