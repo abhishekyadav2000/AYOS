@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings, User, GripVertical } from "lucide-react";
+import { Monitor, Globe2, Trash2, FileText, Calculator, Paintbrush, Folder, Users, Settings, User, GripVertical, Gamepad2 } from "lucide-react";
 import { DesktopIcon } from "@/config/os";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useWindowStore } from "../state/useWindowStore";
@@ -18,6 +18,7 @@ const iconLookup: Record<string, React.ComponentType<{ size?: number; className?
   network: Globe2,
   "recycle-bin": Trash2,
   calculator: Calculator,
+  games: Gamepad2,
 };
 
 type DesktopIconsProps = {
@@ -74,6 +75,7 @@ export function DesktopIcons({ icons, onOpen }: DesktopIconsProps) {
       about: { appId: "about" },
       projects: { appId: "my-computer", folderId: "projects" },
       socials: { appId: "my-computer", folderId: "social" },
+      games: { appId: "games" },
     };
     const config = mapping[id];
     if (config && appRegistry[config.appId]) {

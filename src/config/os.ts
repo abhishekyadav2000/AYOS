@@ -32,6 +32,7 @@ export const osConfig: OSConfig = {
   userName: "Abhishek",
   desktopIcons: [
     { id: "this-pc", label: "This PC" },
+    { id: "games", label: "Games" },
     { id: "recycle-bin", label: "Recycle Bin" },
   ],
   pinnedApps: [
@@ -41,6 +42,7 @@ export const osConfig: OSConfig = {
     { id: "notepad-ai", label: "Notepad AI", icon: "file-text" },
     { id: "calculator", label: "Calculator", icon: "calculator" },
     { id: "paint", label: "Paint", icon: "palette" },
+    { id: "games", label: "Games", icon: "gamepad" },
     { id: "recycle-bin", label: "Recycle Bin", icon: "trash" },
   ],
   recommendedItems: [],

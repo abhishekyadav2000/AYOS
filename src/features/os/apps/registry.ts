@@ -7,7 +7,7 @@ import { PaintApp } from "./PaintApp";
 import { SettingsApp } from "./SettingsApp";
 import { AboutApp } from "./AboutApp";
 import { SnakeGameApp } from "./SnakeGameApp";
-import { GamesHub } from "./GamesHub";
+import GamesStoreApp from "./GamesStoreApp";
 import { Game2048 } from "./games/Game2048";
 import { TetrisGame } from "./games/TetrisGame";
 import { MinesweeperGame } from "./games/MinesweeperGame";
@@ -103,10 +103,10 @@ export const appRegistry: Record<AppId, AppDefinition> = {
 	},
 	games: {
 		appId: "games",
-		title: "Games",
-		icon: "joystick",
-		component: () => React.createElement(GamesHub),
-		defaultSize: { w: 800, h: 600 },
+		title: "Games Store",
+		icon: "gamepad",
+		component: () => React.createElement(GamesStoreApp),
+		defaultSize: { w: 1000, h: 700 },
 	},
 	"2048": {
 		appId: "2048",

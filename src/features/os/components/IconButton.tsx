@@ -26,6 +26,9 @@ import {
   Trash2,
   Video,
   Wifi,
+  Gamepad2,
+  Monitor,
+  Palette,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -54,6 +57,9 @@ const iconMap = {
   wifi: Wifi,
   battery: BatteryMedium,
   socials: Globe2,
+  gamepad: Gamepad2,
+  monitor: Monitor,
+  palette: Palette,
 } as const;
 
 type IconName = keyof typeof iconMap;
