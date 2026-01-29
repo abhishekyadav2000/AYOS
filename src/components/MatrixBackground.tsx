@@ -1,12 +1,61 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  getPreferences,
+  rainContentOptions,
+  type BackgroundPreferences,
+} from "@/lib/backgroundPreferences";
+
+// Formation patterns
+const formations = {
+  wave: (x: number, time: number, columns: number) => Math.sin((x / columns) * Math.PI * 2 + time * 0.02) * 50,
+  spiral: (x: number, time: number, columns: number) => Math.sin((x / columns) * Math.PI * 4 + time * 0.015) * 40,
+  pulse: (x: number, time: number, columns: number) => Math.sin(time * 0.01) * 60,
+  zigzag: (x: number, time: number, columns: number) => ((x % 20) < 10 ? 40 : -40) + Math.sin(time * 0.01) * 20,
+  vortex: (x: number, time: number, columns: number) => Math.sin((x / columns) * Math.PI + time * 0.01) * 30 + Math.cos(time * 0.008) * 40,
+  ripple: (x: number, time: number, columns: number) => Math.sin((x - time * 0.5) * 0.05) * 45,
+};
+
+type FormationKey = keyof typeof formations;
 
 export function MatrixBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const mousePosRef = useRef({ x: 0, y: 0 });
   const animationFrameRef = useRef<number | undefined>(undefined);
+  const formationIndexRef = useRef(0);
+  const formationStartTimeRef = useRef(Date.now());
+  const [prefs, setPrefs] = useState<BackgroundPreferences | null>(null);
+  const [currentChars, setCurrentChars] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Load initial preferences
+    setPrefs(getPreferences());
+
+    const handlePreferencesChanged = (e: Event) => {
+      const event = e as CustomEvent;
+      setPrefs(event.detail);
+    };
+
+    window.addEventListener("backgroundPreferencesChanged", handlePreferencesChanged);
+    return () => {
+      window.removeEventListener("backgroundPreferencesChanged", handlePreferencesChanged);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!prefs) return;
+
+    // Update character set based on rain content preference
+    let chars: string[] = [];
+    if (prefs.rainContent === "custom" && prefs.customText) {
+      chars = prefs.customText.split("");
+    } else {
+      chars = rainContentOptions[prefs.rainContent] || rainContentOptions.matrix;
+    }
+    setCurrentChars(chars);
+  }, [prefs?.rainContent, prefs?.customText]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -34,7 +83,7 @@ export function MatrixBackground() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !prefs || currentChars.length === 0) return;
 
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
@@ -47,8 +96,8 @@ export function MatrixBackground() {
     setCanvasSize();
     window.addEventListener("resize", setCanvasSize);
 
-    // Matrix characters - mix of katakana, latin, numbers, and symbols
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ";
+    // Use current characters based on preferences
+    const chars = currentChars;
     const fontSize = 14;
     const columns = canvas.width / fontSize;
 
@@ -57,6 +106,21 @@ export function MatrixBackground() {
     for (let i = 0; i < columns; i++) {
       drops[i] = Math.random() * -100;
     }
+
+    // Get current formation based on 2-minute rotation
+    const getFormation = () => {
+      const formationNames = Object.keys(formations) as FormationKey[];
+      const elapsed = Date.now() - formationStartTimeRef.current;
+      const rotationInterval = 120000; // 2 minutes in milliseconds
+      
+      // Auto-rotate formation every 2 minutes
+      const newIndex = Math.floor(elapsed / rotationInterval) % formationNames.length;
+      if (newIndex !== formationIndexRef.current) {
+        formationIndexRef.current = newIndex;
+      }
+      
+      return formationNames[formationIndexRef.current];
+    };
 
     // Extended rainbow color palette with more variety
     const colors = [
@@ -82,6 +146,7 @@ export function MatrixBackground() {
     let lastFrameTime = 0;
     const targetFPS = 30;
     const frameDelay = 1000 / targetFPS;
+    let globalTimeOffset = 0;
 
     function draw(currentTime: number) {
       if (!ctx || !canvas) return;
@@ -93,6 +158,7 @@ export function MatrixBackground() {
         return;
       }
       lastFrameTime = currentTime - (elapsed % frameDelay);
+      globalTimeOffset += elapsed * 0.5;
 
       // Add trailing effect with darker fade
       ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
@@ -113,13 +179,20 @@ export function MatrixBackground() {
       // Set font once
       ctx.font = `bold ${fontSize}px monospace`;
 
+      // Get current formation
+      const currentFormationName = getFormation();
+      const currentFormation = formations[currentFormationName];
+
       // Draw characters - optimize by reducing calculations
       for (let i = 0; i < drops.length; i++) {
         // Random character
         const text = chars[Math.floor(Math.random() * chars.length)];
         
         const x = i * fontSize;
-        const y = drops[i] * fontSize;
+        
+        // Apply formation pattern to y position
+        const formationOffset = currentFormation(i, globalTimeOffset, drops.length);
+        const y = drops[i] * fontSize + formationOffset;
         
         // Skip offscreen characters
         if (y < -fontSize || y > canvas.height + fontSize) {
@@ -190,7 +263,7 @@ export function MatrixBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 -z-20 pointer-events-none"
-      style={{ opacity: 0.35 }}
+      style={{ opacity: prefs?.matrixOpacity || 0.35, display: prefs?.background === "matrix" ? "block" : "none" }}
     />
   );
 }
