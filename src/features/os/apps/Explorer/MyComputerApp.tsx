@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ChevronLeft, ChevronRight, Folder, HardDrive, RefreshCw, Search, Home, FileText, File, FileArchive, FileCode, Link, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Folder, HardDrive, RefreshCw, Search, Home, FileText, File, FileArchive, FileCode, Link, Upload, Trash2, Eye } from "lucide-react";
 import { useFileSystemStore, FSNode, FileKind } from "../../state/useFileSystem";
 import { useAppInit } from "../../context/AppInitContext";
 
@@ -71,6 +71,34 @@ type Selection = {
 
 const isSelectable = (node: FSNode) => node.type !== "root";
 
+const getNodeEmoji = (node: FSNode): string => {
+  if (node.type === "folder") return "📁";
+  if (node.type === "drive") return "💾";
+  if (node.type === "file") {
+    switch (node.fileType) {
+      case "pdf": return "📄";
+      case "docx":
+      case "doc": return "📝";
+      case "txt": return "📋";
+      case "xlsx": return "📊";
+      case "pptx": return "🎞️";
+      case "link": return "🔗";
+      case "exe": return "⚙️";
+      default: return "📎";
+    }
+  }
+  return "📁";
+};
+
+const getNodeTypeLabel = (node: FSNode): string => {
+  if (node.type === "folder") return "Folder";
+  if (node.type === "drive") return "Drive";
+  if (node.type === "file") {
+    return node.fileType?.toUpperCase() || "File";
+  }
+  return "Item";
+};
+
 export function MyComputerApp() {
   const fs = useFileSystemStore();
   const initData = useAppInit();
@@ -135,33 +163,44 @@ export function MyComputerApp() {
     if (node.type === "folder" || node.type === "drive" || node.type === "root") {
       navigateTo(node.id);
     } else if (node.type === "file") {
-      if (node.fileType === "link" && node.content) {
-        // .link files open in new browser tab
+      viewFile(node);
+    }
+  };
+
+  const viewFile = (node: FSNode) => {
+    if (node.fileType === "link" && node.content) {
+      // .link files open in new browser tab
+      window.open(node.content, "_blank");
+    } else if (node.fileType === "pdf") {
+      // PDF files - try to open content URL or show in viewer
+      if (node.content?.startsWith("/uploads/") || node.content?.startsWith("http")) {
         window.open(node.content, "_blank");
-      } else if (node.fileType === "pdf") {
-        // .pdf files open in new tab or download
-        if (node.name === "Resume.pdf") {
-          window.open("/resume.pdf", "_blank");
-        } else {
-          setEditorNode(node);
-        }
-      } else if (node.fileType === "docx") {
-        // .docx files download
-        if (node.name === "Resume.docx") {
-          const link = document.createElement("a");
-          link.href = "/resume.docx";
-          link.download = "Resume.docx";
-          link.click();
-        } else {
-          setEditorNode(node);
-        }
-      } else if (node.fileType === "txt") {
-        // .txt files open in Notepad AI
-        setEditorNode(node);
+      } else if (node.name === "Resume.pdf") {
+        window.open("/resume.pdf", "_blank");
       } else {
-        // Default to showing in editor
         setEditorNode(node);
       }
+    } else if (node.fileType === "docx" || node.fileType === "doc") {
+      // Word docs - download or show info
+      if (node.content?.startsWith("/uploads/") || node.content?.startsWith("http")) {
+        const link = document.createElement("a");
+        link.href = node.content;
+        link.download = node.name;
+        link.click();
+      } else if (node.name === "Resume.docx") {
+        const link = document.createElement("a");
+        link.href = "/resume.docx";
+        link.download = "Resume.docx";
+        link.click();
+      } else {
+        setEditorNode(node);
+      }
+    } else if (node.fileType === "txt") {
+      // Text files open in editor
+      setEditorNode(node);
+    } else {
+      // Default to showing in editor
+      setEditorNode(node);
     }
   };
 
@@ -179,9 +218,10 @@ export function MyComputerApp() {
     fs.createDocument(currentId, label, fileType, "");
   };
 
-  const deleteSelection = () => {
-    if (!selection.id) return;
-    fs.deleteNode(selection.id);
+  const deleteSelection = (nodeId?: string) => {
+    const idToDelete = nodeId || selection.id;
+    if (!idToDelete) return;
+    fs.deleteNode(idToDelete);
     setSelection({ id: null });
   };
 
@@ -271,72 +311,81 @@ export function MyComputerApp() {
         <ToolbarButton icon={ChevronLeft} label="Back" onClick={goBack} disabled={history.pointer === 0} />
         <ToolbarButton icon={ChevronRight} label="Forward" onClick={goForward} disabled={history.pointer >= history.stack.length - 1} />
         <ToolbarButton icon={Home} label="Up" onClick={openParent} disabled={currentId === "root"} />
-        <ToolbarButton icon={RefreshCw} label="Refresh" onClick={() => setSearchQuery("")} />
+        
         {(currentId === "docs" || currentId === "downloads") && (
           <ToolbarButton icon={Upload} label="Upload" onClick={handleUploadClick} />
         )}
 
-        <div className="flex-1 flex items-center gap-2 ml-2">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-1 text-sm bg-white/5 border border-white/10 rounded px-2 py-1 min-w-[240px]">
-            {breadcrumb.map((part, idx) => (
-              <React.Fragment key={part.id}>
-                <button onClick={() => navigateTo(part.id)} className="text-white/80 hover:text-white">
-                  {part.label}
-                </button>
-                {idx < breadcrumb.length - 1 && <span className="text-white/30">›</span>}
-              </React.Fragment>
-            ))}
-          </div>
-
-          <div className="relative w-64">
-            <Search size={14} className="absolute left-2 top-2.5 text-white/50" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
-              className="w-full bg-white/5 border border-white/10 rounded pl-8 pr-3 py-1.5 text-sm text-white/90 focus:outline-none"
-            />
-          </div>
+        <div className="flex-1" />
+        
+        <div className="relative w-48">
+          <Search size={14} className="absolute left-2 top-2.5 text-white/50" />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="w-full bg-white/5 border border-white/10 rounded pl-8 pr-3 py-1.5 text-xs text-white/90 placeholder-white/40 focus:outline-none focus:border-cyan-400/50"
+          />
         </div>
       </div>
 
       {/* Main */}
       <div className="flex flex-1 overflow-hidden">
         {/* Navigation pane */}
-        <div className="w-56 border-r border-white/10 bg-white/5 p-2 space-y-1 text-sm">
-          <NavItem label="This PC" active={currentId === "root"} onClick={() => navigateTo("root")} />
-          <NavItem label="Documents" active={currentId === "docs"} onClick={() => navigateTo("docs")} />
-          <NavItem label="Downloads" active={currentId === "downloads"} onClick={() => navigateTo("downloads")} />
-          <NavItem label="Desktop" active={currentId === "desktop"} onClick={() => navigateTo("desktop")} />
-          <NavItem label="Pictures" active={currentId === "pictures"} onClick={() => navigateTo("pictures")} />
-          <NavItem label="This PC (Drives)" active={false} onClick={() => navigateTo("root")} />
+        <div className="w-48 border-r border-white/10 bg-white/5 p-2 space-y-1 text-xs">
+          <NavItem label="📁 This PC" active={currentId === "root"} onClick={() => navigateTo("root")} />
+          <NavItem label="📄 Documents" active={currentId === "docs"} onClick={() => navigateTo("docs")} />
+          <NavItem label="⬇️ Downloads" active={currentId === "downloads"} onClick={() => navigateTo("downloads")} />
+          <NavItem label="🖼️ Pictures" active={currentId === "pictures"} onClick={() => navigateTo("pictures")} />
         </div>
 
         {/* Content */}
-        <div className="flex-1 bg-black/30 p-3 overflow-auto" onDoubleClick={() => setContextMenu({ x: 0, y: 0, show: false })}>
-          {/* Sections for root */}
-          {currentId === "root" ? (
-            <div className="space-y-6">
-              <Section title="Folders">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {children.filter((n) => n.meta?.group === "folder").map((child) => (
-                    <NodeTile key={child.id} node={child} isSelected={selection.id === child.id} onClick={() => setSelection({ id: child.id })} onDoubleClick={() => enterNode(child)} />
-                  ))}
-                </div>
-              </Section>
-              <Section title="Devices and drives">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {children.filter((n) => n.meta?.group === "drive").map((child) => (
-                    <NodeTile key={child.id} node={child} isSelected={selection.id === child.id} onClick={() => setSelection({ id: child.id })} onDoubleClick={() => enterNode(child)} />
-                  ))}
-                </div>
-              </Section>
+        <div className="flex-1 bg-black/30 p-4 overflow-auto flex flex-col">
+          {/* Show items as list for cleaner view */}
+          {children.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-white/40 text-sm">
+              <div className="text-center">
+                <div className="text-2xl mb-2">📭</div>
+                <p>This folder is empty</p>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="space-y-1">
               {children.map((child) => (
-                <NodeTile key={child.id} node={child} isSelected={selection.id === child.id} onClick={() => setSelection({ id: child.id })} onDoubleClick={() => enterNode(child)} />
+                <div
+                  key={child.id}
+                  onClick={() => setSelection({ id: child.id })}
+                  onDoubleClick={() => enterNode(child)}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded text-sm cursor-pointer transition ${
+                    selection.id === child.id
+                      ? "bg-cyan-500/20 border border-cyan-400/40"
+                      : "hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <span className="text-lg w-6 flex-shrink-0">{getNodeEmoji(child)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white/90 truncate">{child.name}</div>
+                    <div className="text-white/40 text-xs">{getNodeTypeLabel(child)}</div>
+                  </div>
+                  {child.type === "file" && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => viewFile(child)}
+                        className="p-1.5 rounded hover:bg-cyan-500/20 text-cyan-300"
+                        title="View"
+                      >
+                        <Eye size={14} />
+                      </button>
+                      <button
+                        onClick={() => deleteSelection(child.id)}
+                        className="p-1.5 rounded hover:bg-red-500/20 text-red-300"
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -367,8 +416,6 @@ export function MyComputerApp() {
         >
           <ContextItem label="New Folder" onClick={createFolder} />
           <ContextItem label="New Document" onClick={() => createDocument("txt")} />
-          <ContextItem label="Rename" onClick={startRename} disabled={!selection.id} />
-          <ContextItem label="Delete" onClick={deleteSelection} disabled={!selection.id} />
         </div>
       ) : null}
 
@@ -390,7 +437,7 @@ export function MyComputerApp() {
         </div>
       ) : null}
 
-      {/* Editor */}
+      {/* Editor - Keep only for viewing files */}
       {editorNode ? (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setEditorNode(null)}>
           <div className="bg-black/95 border border-white/15 rounded-lg p-4 w-[640px] max-w-full" onClick={(e) => e.stopPropagation()}>
@@ -398,19 +445,48 @@ export function MyComputerApp() {
               <h3 className="text-white font-semibold text-sm">{editorNode.name}</h3>
               <button onClick={() => setEditorNode(null)} className="text-white/60 hover:text-white text-xs">Close</button>
             </div>
-            {editorNode.fileType === "txt" || editorNode.fileType === "docx" ? (
+            {editorNode.fileType === "txt" ? (
               <textarea
                 defaultValue={editorNode.content || ""}
                 onBlur={(e) => fs.updateContent(editorNode.id, e.target.value)}
-                className="w-full h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white"
+                className="w-full h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white font-mono"
               />
             ) : editorNode.fileType === "pdf" ? (
-              <div className="h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white/70 flex items-center justify-center">
-                PDF viewer placeholder
+              <div className="h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white/70 flex flex-col items-center justify-center gap-3">
+                <div className="text-4xl">📄</div>
+                <div>PDF Document: {editorNode.name}</div>
+                {editorNode.content && (
+                  <button
+                    onClick={() => window.open(editorNode.content, "_blank")}
+                    className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded text-xs"
+                  >
+                    Open PDF
+                  </button>
+                )}
+              </div>
+            ) : editorNode.fileType === "docx" || editorNode.fileType === "doc" ? (
+              <div className="h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white/70 flex flex-col items-center justify-center gap-3">
+                <div className="text-4xl">📝</div>
+                <div>Word Document: {editorNode.name}</div>
+                {editorNode.content && (
+                  <button
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href = editorNode.content!;
+                      link.download = editorNode.name;
+                      link.click();
+                    }}
+                    className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded text-xs"
+                  >
+                    Download Document
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white/70 flex items-center justify-center">
-                Preview not available
+              <div className="h-64 bg-white/5 border border-white/10 rounded p-3 text-sm text-white/70 flex flex-col items-center justify-center gap-2">
+                <div className="text-2xl">{getNodeEmoji(editorNode)}</div>
+                <div>File: {editorNode.name}</div>
+                <div className="text-xs text-white/50">Preview not available for this file type</div>
               </div>
             )}
             <div className="mt-3 flex justify-end">

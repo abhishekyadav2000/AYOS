@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export type NodeType = "root" | "folder" | "file" | "drive";
-export type FileKind = "txt" | "pdf" | "docx" | "png" | "jpg" | "link" | "exe";
+export type FileKind = "txt" | "pdf" | "docx" | "doc" | "xlsx" | "pptx" | "png" | "jpg" | "link" | "exe";
 
 export type FSNode = {
   id: string;
