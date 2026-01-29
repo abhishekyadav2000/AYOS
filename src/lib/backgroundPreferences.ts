@@ -64,6 +64,18 @@ export const formations = [
   "ripple",
 ];
 
+export const osFormations = [
+  "wave",
+  "spiral",
+  "pulse",
+  "zigzag",
+  "vortex",
+  "ripple",
+  "tornado",
+  "lightning",
+  "blackhole",
+];
+
 export const backgrounds = [
   { id: "matrix", label: "Matrix Rain" },
   { id: "cyberpunk", label: "Cyberpunk City" },

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MatrixBackground } from "@/components/MatrixBackground";
-import { BackgroundContextMenu } from "@/components/BackgroundContextMenu";
 import { siteConfig } from "@/config/site";
 
 const geistSans = Geist({
@@ -56,7 +55,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
         <MatrixBackground />
-        <BackgroundContextMenu />
         <main>{children}</main>
       </body>
     </html>
