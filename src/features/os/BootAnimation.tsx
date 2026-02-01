@@ -46,95 +46,144 @@ export function BootAnimation({ onBootComplete }: BootAnimationProps) {
   return (
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
       <style>{`
-        @keyframes orbit {
-          0% {
-            transform: translate(-50%, -50%) rotate(0deg) translateX(70px) rotate(0deg);
-          }
-          100% {
-            transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg);
-          }
+        @keyframes rotateClockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
-        .orbital-loader {
-          width: 180px;
-          height: 180px;
+        @keyframes rotateCounterClockwise {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(-360deg); }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+
+        .network-loader {
+          width: 280px;
+          height: 280px;
           position: relative;
-          filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.2));
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .orbital-ring {
-          position: absolute;
-          inset: 0;
-          border: 2px solid rgba(0, 255, 255, 0.35);
-          border-radius: 999px;
+        .network-svg {
+          width: 100%;
+          height: 100%;
+          filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.3));
         }
 
-        .orbital-ring.ring2 {
-          inset: 22px;
-          border-color: rgba(0, 255, 255, 0.18);
+        .outer-ring {
+          animation: rotateClockwise 8s linear infinite;
         }
 
-        .orbital-dot {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          background: rgba(0, 255, 255, 0.95);
-          border-radius: 999px;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          animation: orbit 1.2s linear infinite;
+        .middle-ring {
+          animation: rotateCounterClockwise 12s linear infinite;
         }
 
-        .orbital-dot.dot2 {
-          width: 7px;
-          height: 7px;
-          opacity: 0.8;
-          animation-duration: 1.6s;
+        .inner-ring {
+          animation: rotateClockwise 6s linear infinite;
         }
 
-        .orbital-dot.dot3 {
-          width: 6px;
-          height: 6px;
-          opacity: 0.7;
-          animation-duration: 2.1s;
+        .node-large {
+          r: 8;
+          fill: rgba(239, 68, 68, 0.9);
+          filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
         }
 
-        .orbital-dot.dot4 {
-          width: 5px;
-          height: 5px;
-          opacity: 0.65;
-          animation-duration: 2.6s;
+        .node-small {
+          r: 4;
+          fill: rgba(255, 255, 255, 0.8);
+          filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
         }
 
-        .orbital-dot.dot1 {
-          animation-delay: 0s;
-        }
-
-        .orbital-dot.dot2 {
-          animation-delay: -0.4s;
-        }
-
-        .orbital-dot.dot3 {
-          animation-delay: -0.8s;
-        }
-
-        .orbital-dot.dot4 {
-          animation-delay: -1.2s;
+        .connection {
+          stroke: rgba(148, 163, 184, 0.2);
+          stroke-width: 1;
+          fill: none;
         }
       `}</style>
 
-      {/* Orbiting Nodes Loader */}
-      <div className="orbital-loader" role="status" aria-label="Loading">
-        <div className="orbital-ring"></div>
-        <div className="orbital-ring ring2"></div>
-        <div className="orbital-dot dot1"></div>
-        <div className="orbital-dot dot2"></div>
-        <div className="orbital-dot dot3"></div>
-        <div className="orbital-dot dot4"></div>
-      </div>
+      {/* Network Geometric Loader */}
+      <div className="network-loader" role="status" aria-label="Loading">
+        <svg className="network-svg" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+          {/* Outer Ring - Red nodes */}
+          <g className="outer-ring">
+            {/* Connections for outer ring */}
+            {[0, 1, 2, 3, 4].map((i) => {
+              const angle1 = (i / 5) * Math.PI * 2;
+              const angle2 = ((i + 1) / 5) * Math.PI * 2;
+              const x1 = 140 + Math.cos(angle1) * 110;
+              const y1 = 140 + Math.sin(angle1) * 110;
+              const x2 = 140 + Math.cos(angle2) * 110;
+              const y2 = 140 + Math.sin(angle2) * 110;
+              return (
+                <line key={`outer-conn-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} className="connection" />
+              );
+            })}
+            {/* Outer nodes */}
+            {[0, 1, 2, 3, 4].map((i) => {
+              const angle = (i / 5) * Math.PI * 2;
+              const x = 140 + Math.cos(angle) * 110;
+              const y = 140 + Math.sin(angle) * 110;
+              return <circle key={`outer-${i}`} cx={x} cy={y} className="node-large" />;
+            })}
+          </g>
 
-      {/* Loading Text & Progress Overlay */}
+          {/* Middle Ring - White nodes */}
+          <g className="middle-ring">
+            {/* Connections for middle ring */}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+              const angle1 = (i / 8) * Math.PI * 2;
+              const angle2 = ((i + 1) / 8) * Math.PI * 2;
+              const x1 = 140 + Math.cos(angle1) * 70;
+              const y1 = 140 + Math.sin(angle1) * 70;
+              const x2 = 140 + Math.cos(angle2) * 70;
+              const y2 = 140 + Math.sin(angle2) * 70;
+              return (
+                <line key={`middle-conn-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} className="connection" />
+              );
+            })}
+            {/* Middle nodes */}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+              const angle = (i / 8) * Math.PI * 2;
+              const x = 140 + Math.cos(angle) * 70;
+              const y = 140 + Math.sin(angle) * 70;
+              return <circle key={`middle-${i}`} cx={x} cy={y} className="node-small" />;
+            })}
+          </g>
+
+          {/* Inner Ring - Red nodes */}
+          <g className="inner-ring">
+            {/* Connections for inner ring */}
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const angle1 = (i / 6) * Math.PI * 2;
+              const angle2 = ((i + 1) / 6) * Math.PI * 2;
+              const x1 = 140 + Math.cos(angle1) * 40;
+              const y1 = 140 + Math.sin(angle1) * 40;
+              const x2 = 140 + Math.cos(angle2) * 40;
+              const y2 = 140 + Math.sin(angle2) * 40;
+              return (
+                <line key={`inner-conn-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} className="connection" />
+              );
+            })}
+            {/* Inner nodes */}
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const angle = (i / 6) * Math.PI * 2;
+              const x = 140 + Math.cos(angle) * 40;
+              const y = 140 + Math.sin(angle) * 40;
+              return <circle key={`inner-${i}`} cx={x} cy={y} className="node-large" />;
+            })}
+          </g>
+
+          {/* Center node */}
+          <circle cx="140" cy="140" r="6" className="node-small" style={{ opacity: 1 }} />
+        </svg>
+      </div>
+  {/* Loading Text & Progress Overlay */}
       <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 z-10">
         {/* Status Text */}
         <p
