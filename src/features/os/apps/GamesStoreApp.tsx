@@ -21,7 +21,7 @@ export default function GamesStoreApp() {
       id: "deadpool-platformer",
       name: "Deadpool Platformer",
       description: "Action-packed platformer! Help Deadpool jump through levels, collect coins, and defeat enemies!",
-      icon: "🔴",
+      icon: "🎭",
       component: DeadpoolPlatformer,
     },
   ];
