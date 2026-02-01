@@ -160,72 +160,90 @@ export default function DeadpoolPlatformer() {
     collectiblesRef.current = level.collectibles;
   };
 
-  // Draw Deadpool sprite
+  // Draw Deadpool sprite (pixel art style)
   const drawDeadpool = (ctx: CanvasRenderingContext2D, x: number, y: number, facingLeft: boolean) => {
     ctx.save();
     ctx.translate(x + 16, y);
     if (facingLeft) ctx.scale(-1, 1);
 
-    // Red suit (main body)
-    ctx.fillStyle = '#CC0000';
-    ctx.fillRect(-14, 0, 28, 32);
+    const px = 2; // Pixel size for pixel art effect
 
-    // Black belt
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(-14, 24, 28, 4);
+    // Helper function to draw pixel blocks
+    const drawPixel = (px_x: number, px_y: number, width: number, height: number, color: string) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(px_x * px, px_y * px, width * px, height * px);
+    };
 
-    // Head
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(0, -10, 10, 0, Math.PI * 2);
-    ctx.fill();
+    // Head - Red with black outlines (mask style)
+    drawPixel(-6, -12, 12, 10, '#E63946');
+    
+    // Black mask areas (eyes)
+    drawPixel(-5, -11, 3, 5, '#1A1A1A');
+    drawPixel(2, -11, 3, 5, '#1A1A1A');
 
-    // Deadpool mask white eyes (left)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(-4, -12, 4, 0, Math.PI * 2);
-    ctx.fill();
+    // White eye areas (deadpool's signature look)
+    drawPixel(-4, -10, 2, 3, '#FFFFFF');
+    drawPixel(3, -10, 2, 3, '#FFFFFF');
 
-    // Deadpool mask white eyes (right)
-    ctx.beginPath();
-    ctx.arc(4, -12, 4, 0, Math.PI * 2);
-    ctx.fill();
+    // Black pupils
+    drawPixel(-3, -9, 1, 1, '#000000');
+    drawPixel(4, -9, 1, 1, '#000000');
 
-    // Eyes pupils (dead/sarcastic look)
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(-3, -13, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(5, -13, 1.5, 0, Math.PI * 2);
-    ctx.fill();
+    // Red mask mouth line
+    drawPixel(-2, -6, 4, 1, '#8B0000');
 
-    // Mouth line
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 1;
+    // Head top highlight (yellow)
+    drawPixel(-5, -13, 2, 1, '#FFD700');
+    drawPixel(3, -13, 2, 1, '#FFD700');
+
+    // Body - Red suit
+    drawPixel(-6, -2, 12, 8, '#E63946');
+
+    // Black body outline/details
+    drawPixel(-6, 2, 12, 2, '#1A1A1A');
+
+    // Arms - Red
+    drawPixel(-9, 0, 3, 6, '#E63946');
+    drawPixel(6, 0, 3, 6, '#E63946');
+
+    // Brown gloves/hands
+    drawPixel(-10, 5, 2, 2, '#8B6F47');
+    drawPixel(8, 5, 2, 2, '#8B6F47');
+
+    // Belt - Brown/Gold
+    drawPixel(-6, 3, 3, 1, '#A89968');
+    drawPixel(3, 3, 3, 1, '#A89968');
+
+    // Belt buckles
+    drawPixel(-5, 3, 1, 1, '#FFD700');
+    drawPixel(4, 3, 1, 1, '#FFD700');
+
+    // Legs - Red
+    drawPixel(-5, 6, 4, 6, '#E63946');
+    drawPixel(1, 6, 4, 6, '#E63946');
+
+    // Boots - Black
+    drawPixel(-5, 11, 4, 2, '#1A1A1A');
+    drawPixel(1, 11, 4, 2, '#1A1A1A');
+
+    // Sword/Katana on back (right side)
+    ctx.strokeStyle = '#2C2C2C';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-5, -6);
-    ctx.lineTo(5, -6);
+    ctx.moveTo(14 * px, -8 * px);
+    ctx.lineTo(18 * px, 8 * px);
     ctx.stroke();
 
-    // Arms
-    ctx.fillStyle = '#CC0000';
-    ctx.fillRect(-18, 6, 6, 16);
-    ctx.fillRect(12, 6, 6, 16);
+    // Sword handle
+    drawPixel(17, 6, 1, 3, '#8B6F47');
 
-    // Hands
-    ctx.fillStyle = '#000000';
+    // Sword blade highlight
+    ctx.strokeStyle = '#696969';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(-15, 24, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(15, 24, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Legs
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(-8, 32, 5, 12);
-    ctx.fillRect(3, 32, 5, 12);
+    ctx.moveTo(15 * px, -6 * px);
+    ctx.lineTo(17 * px, 6 * px);
+    ctx.stroke();
 
     ctx.restore();
   };
