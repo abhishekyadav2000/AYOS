@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Play, Trophy, Info } from "lucide-react";
 import DinoRunnerGame from "./games/DinoRunnerGame";
+import DeadpoolPlatformer from "./games/DeadpoolPlatformer";
 
 export default function GamesStoreApp() {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
@@ -15,6 +16,13 @@ export default function GamesStoreApp() {
       description: "Classic endless runner game. Jump over obstacles and beat your high score!",
       icon: "🦖",
       component: DinoRunnerGame,
+    },
+    {
+      id: "deadpool-platformer",
+      name: "Deadpool Platformer",
+      description: "Action-packed platformer! Help Deadpool jump through levels, collect coins, and defeat enemies!",
+      icon: "🔴",
+      component: DeadpoolPlatformer,
     },
   ];
 
